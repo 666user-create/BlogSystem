@@ -41,6 +41,14 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- 接口自动化测试：RestAssured（REST API 测试库，配合 JUnit5 使用） -->
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>5.5.0</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- JWT -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

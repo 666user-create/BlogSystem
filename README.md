@@ -107,6 +107,10 @@ src/main/resources  # 配置文件 + 前端静态页面
 mvn test
 ```
 
-- 单元测试：JUnit5（`JwtUtilsTest`、`SecurityUtilTest` 等，共 11 条）
-- 接口测试：Postman 集合（84 条接口用例）
-- UI 自动化：Selenium WebDriver（6 条核心流程用例）
+| 层级 | 框架 | 覆盖 |
+|---|---|---|
+| 单元测试 | JUnit5 + Mockito | 工具类（JWT/密码）+ 服务层（`UserServiceImpl`、`BlogServiceImpl` 全分支） |
+| 接口测试 | RestAssured + JUnit5 | 用户/博客/管理端/鉴权 30 条接口用例（`@SpringBootTest` 随机端口 + 独立 test profile） |
+| UI 自动化 | Selenium WebDriver | 6 条核心流程用例（设计见测试文档，脚本待补） |
+
+> 接口测试需要本机 MySQL 已启动，连接配置见 `src/test/resources/application-test.yml`（与开发/生产配置隔离）。

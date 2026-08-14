@@ -38,11 +38,9 @@ public class UserServiceImpl implements UserService {
         if(userInfo==null){
             throw new BlogException("用户不存在");
         }
-        log.info("数据库存储的密码: length={}, 完整值=[{}]",
-            userInfo.getPassword() != null ? userInfo.getPassword().length() : 0,
-            userInfo.getPassword());
+        // 注意：此处禁止打印密码或密码哈希（敏感信息泄露风险），仅记录用户名
         if (!SecurityUtil.verify(userLoginRequest.getPassword(), userInfo.getPassword())) {
-            log.warn("密码验证失败: 输入=[{}], 数据库值=[{}]", userLoginRequest.getPassword(), userInfo.getPassword());
+            log.warn("用户 {} 密码验证失败", userLoginRequest.getUserName());
             throw new BlogException("密码错误");
         }
         Map<String,Object> map=new HashMap<>();

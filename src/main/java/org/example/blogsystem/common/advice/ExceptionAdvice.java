@@ -1,5 +1,6 @@
 package org.example.blogsystem.common.advice;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.example.blogsystem.common.exception.BlogException;
 import org.example.blogsystem.common.pojo.response.Result;
@@ -37,6 +38,19 @@ public class ExceptionAdvice {
     @ExceptionHandler(value = HandlerMethodValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result exceptionHandler(HandlerMethodValidationException exception) {
+        log.error(exception.getMessage(), exception);
+        return Result.fail("参数校验失败");
+    }
+
+    /**
+     * 处理 @RequestParam / @PathVariable 等参数上的约束校验异常
+     * （类上标注 @Validated 时，Spring 通过 MethodValidationInterceptor 校验这些参数，
+     * 抛出的异常类型是 ConstraintViolationException 而非 HandlerMethodValidationException）。
+     * 统一返回 HTTP 400，与 body 参数校验失败的行为保持一致。
+     */
+    @ExceptionHandler(value = ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result exceptionHandler(ConstraintViolationException exception) {
         log.error(exception.getMessage(), exception);
         return Result.fail("参数校验失败");
     }

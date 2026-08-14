@@ -1,0 +1,24 @@
+# ===== Maven =====
+target/
+*.class
+
+# ===== IDE =====
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# ===== 日志 =====
+*.log
+*.log.*
+*.gz
+
+# ===== 系统文件 =====
+.DS_Store
+Thumbs.db
+
+# ===== 本地环境配置（含数据库密码等敏感信息）=====
+application-local.yml
+application-local.properties

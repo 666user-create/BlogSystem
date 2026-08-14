@@ -20,12 +20,29 @@ import java.util.Map;
  */
 @Slf4j
 public class JwtUtils {
-    public static String secret = "dVnsmy+SIX6pNptQdeclDSJ26EMSPEIhvZYKBTTug4k=";
-    //过期时间(单位: 毫秒)
-    public static long expiration = 24*60*60*1000;//一天
-    //生成安全密钥
-    private static SecretKey secretKey =
-            Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+    // 默认密钥：仅本地开发兜底；生产环境必须通过 blog.jwt.secret 配置（支持环境变量 BLOG_JWT_SECRET 覆盖）
+    private static final String DEFAULT_SECRET = "dVnsmy+SIX6pNptQdeclDSJ26EMSPEIhvZYKBTTug4k=";
+    // 默认过期时间(单位: 毫秒)，一天
+    private static final long DEFAULT_EXPIRATION = 24 * 60 * 60 * 1000L;
+
+    private static volatile String secret = DEFAULT_SECRET;
+    private static volatile long expiration = DEFAULT_EXPIRATION;
+    private static volatile SecretKey secretKey =
+            Keys.hmacShaKeyFor(Decoders.BASE64.decode(DEFAULT_SECRET));
+
+    /**
+     * 初始化 JWT 密钥与过期时间（由 JwtConfig 在应用启动时注入）。
+     * 密钥必须是 Base64 编码的 HMAC-SHA 密钥。
+     */
+    public static void init(String secret, long expiration) {
+        if (secret == null || secret.isEmpty()) {
+            throw new IllegalArgumentException("JWT 密钥不能为空");
+        }
+        JwtUtils.secret = secret;
+        JwtUtils.expiration = expiration;
+        JwtUtils.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+        log.info("JWT 密钥已初始化, 过期时间: {} ms", expiration);
+    }
     /**
      * 生成 JWT
      * @param claim 自定义载荷（例如用户 id、用户名等）

@@ -1,13 +1,9 @@
 package org.example.blogsystem.common.utils;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.crypto.SecretKey;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,6 +12,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class JwtUtilsTest {
+
+    private static final String SECRET = "dVnsmy+SIX6pNptQdeclDSJ26EMSPEIhvZYKBTTug4k=";
+    private static final long EXPIRATION = 24 * 60 * 60 * 1000L;
+
+    /**
+     * 每个用例前恢复默认配置，避免用例之间相互污染
+     */
+    @BeforeEach
+    void resetJwt() {
+        JwtUtils.init(SECRET, EXPIRATION);
+    }
 
     private Map<String, Object> buildClaims() {
         Map<String, Object> claims = new HashMap<>();
@@ -45,15 +52,10 @@ class JwtUtilsTest {
 
     @Test
     void parseJwt_expiredToken_shouldReturnNull() {
-        // 用与 JwtUtils 相同的密钥手动构造一个已过期的 token
-        SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(JwtUtils.secret));
-        String expiredToken = Jwts.builder()
-                .setClaims(buildClaims())
-                .setIssuedAt(new Date(System.currentTimeMillis() - 2 * 60 * 60 * 1000)) // 2小时前签发
-                .setExpiration(new Date(System.currentTimeMillis() - 60 * 60 * 1000))    // 1小时前已过期
-                .signWith(key)
-                .compact();
-        assertNull(JwtUtils.parseJwt(expiredToken));
+        // 以负数过期时间签发，token 立即过期
+        JwtUtils.init(SECRET, -1000L);
+        String token = JwtUtils.genJwt(buildClaims());
+        assertNull(JwtUtils.parseJwt(token));
     }
 
     @Test

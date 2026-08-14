@@ -1,6 +1,14 @@
 server:
   port: 8080
 
+blog:
+  jwt:
+    # JWT 签名密钥（Base64 编码的 HMAC-SHA 密钥）
+    # 生产环境务必通过环境变量 BLOG_JWT_SECRET 覆盖，不要使用默认值
+    secret: ${BLOG_JWT_SECRET:dVnsmy+SIX6pNptQdeclDSJ26EMSPEIhvZYKBTTug4k=}
+    # token 过期时间（毫秒），默认 24 小时
+    expiration: 86400000
+
 spring:
   profiles:
     active: "@profile.name@"

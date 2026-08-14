@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客管理</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+
+<body>
+    <div class="nav">
+        <img src="pic/logo2.jpg" alt="">
+        <span class="blog-title">我的博客系统</span>
+        <div class="space"></div>
+        <a class="nav-span" href="blog_list.html">主页</a>
+        <a class="nav-span" href="blog_edit.html">写博客</a>
+        <a class="nav-span nav-admin" href="blog_admin.html">管理</a>
+        <a class="nav-span" href="#" onclick="logout()">注销</a>
+    </div>
+
+    <div class="admin-container">
+        <div class="admin-header">
+            <h2>博客管理</h2>
+            <span class="admin-badge">管理员</span>
+        </div>
+
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width:60px">ID</th>
+                        <th>标题</th>
+                        <th style="width:140px">更新时间</th>
+                        <th style="width:80px">状态</th>
+                        <th style="width:100px">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="blog-tbody">
+                    <tr><td colspan="5" class="loading">加载中...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        $(function () {
+            // 非 admin 用户拦截
+            var userName = sessionStorage.getItem("userName") || "";
+            if (userName !== "admin") {
+                alert("无管理员权限");
+                location.href = "blog_list.html";
+                return;
+            }
+            loadAdminList();
+        });
+
+        function loadAdminList() {
+            $.ajax({
+                type: "get",
+                url: "/blog/adminList",
+                success: function (result) {
+                    if (result && result.code === 200 && Array.isArray(result.data)) {
+                        renderTable(result.data);
+                    } else {
+                        $("#blog-tbody").html('<tr><td colspan="5">' + (result && result.errMsg ? result.errMsg : "加载失败") + '</td></tr>');
+                    }
+                },
+                error: function () {
+                    $("#blog-tbody").html('<tr><td colspan="5">加载失败，请稍后重试</td></tr>');
+                }
+            });
+        }
+
+        function renderTable(list) {
+            if (list.length === 0) {
+                $("#blog-tbody").html('<tr><td colspan="5" class="empty">暂无博客</td></tr>');
+                return;
+            }
+            var html = "";
+            for (var i = 0; i < list.length; i++) {
+                var blog = list[i];
+                var isPublished = blog.publishedStatus === 1;
+                var statusClass = isPublished ? "status-on" : "status-off";
+                var statusText = isPublished ? "上架" : "下架";
+                var btnText = isPublished ? "下架" : "上架";
+                var btnClass = isPublished ? "btn-off" : "btn-on";
+                var updateTime = blog.createTime || "";
+
+                html += '<tr>';
+                html += '<td>' + blog.id + '</td>';
+                html += '<td class="title-cell">' + escapeHtml(blog.title || "") + '</td>';
+                html += '<td>' + updateTime + '</td>';
+                html += '<td><span class="' + statusClass + '">' + statusText + '</span></td>';
+                html += '<td><button class="' + btnClass + '" onclick="togglePublish(' + blog.id + ',this)">' + btnText + '</button></td>';
+                html += '</tr>';
+            }
+            $("#blog-tbody").html(html);
+        }
+
+        function togglePublish(blogId, btn) {
+            if (!confirm("确定切换该博客的上下架状态吗？")) return;
+            $.ajax({
+                type: "post",
+                url: "/blog/togglePublish",
+                data: { blogId: blogId },
+                success: function (result) {
+                    if (result && result.code === 200) {
+                        loadAdminList();
+                    } else {
+                        alert(result && result.errMsg ? result.errMsg : "操作失败");
+                    }
+                },
+                error: function () {
+                    alert("操作失败，请稍后重试");
+                }
+            });
+        }
+
+        function escapeHtml(str) {
+            var div = document.createElement("div");
+            div.textContent = str;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+
+</html>

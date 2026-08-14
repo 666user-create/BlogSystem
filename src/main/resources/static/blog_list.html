@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客列表页</title>
+
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/list.css">
+
+</head>
+<body>
+    <div class="nav">
+        <img class="nav-logo" src="tuiao.png" alt="" onerror="this.onerror=null;this.src='pic/logo2.jpg'">
+        <span class="blog-title">我的博客系统</span>
+        <div class="space"></div>
+        <a class="nav-span" href="blog_list.html">主页</a>
+        <a class="nav-span" href="blog_edit.html">写博客</a>
+        <a class="nav-span nav-admin" href="blog_admin.html">管理</a>
+        <a class="nav-span" href="#" onclick="logout()">注销</a>
+    </div>
+
+    <div class="container">
+        <div class="left">
+            <div class="card">
+                <h3></h3>
+                <a href="#"></a>
+                <div class="row">
+                    <span>文章</span>
+                    <span>分类</span>
+                </div>
+                <div class="row">
+                    <span id="blog-count">0</span>
+                    <span>1</span>
+                </div>
+            </div>
+        </div>
+        <div class="right">
+            <!-- <div class="blog">
+                <div class="title">我的第一篇博客</div>
+                <div class="date">2021-06-02</div>
+                <div class="desc">今天开始, 好好学习Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quas nesciunt, hic voluptatum, dolorem quisquam modi accusantium, commodi dolores architecto ratione vel exercitationem optio. Facere repellendus autem, obcaecati dolore sequi incidunt?</div>
+                <a class="detail" href="blog_detail.html">查看全文&gt;&gt;</a>
+            </div>
+            <div class="blog">
+                <div class="title">我的第一篇博客</div>
+                <div class="date">2021-06-02</div>
+                <div class="desc">今天开始, 好好学习Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quas nesciunt, hic voluptatum, dolorem quisquam modi accusantium, commodi dolores architecto ratione vel exercitationem optio. Facere repellendus autem, obcaecati dolore sequi incidunt?</div>
+                <a class="detail" href="blog_detail.html">查看全文&gt;&gt;</a>
+            </div> -->
+        </div>
+    </div>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        getBlogList();
+        getUserInfo();
+        function getBlogList() {
+            // 加载博客列表
+            $.ajax({
+                type: "get",
+                url: "/blog/getList",
+                success: function (result) {
+                    if (result && result.code === 200 && Array.isArray(result.data) && result.data.length > 0) {
+                        var finalHtml = "";
+                        for (var i = 0; i < result.data.length; i++) {
+                            var blogInfo = result.data[i];
+                            finalHtml += '<div class="blog">';
+                            finalHtml += '<div class="title">' + (blogInfo.title || '') + '</div>';
+                            finalHtml += '<div class="date">' + (blogInfo.createTime || '') + '</div>';
+                            // 列表中展示摘要字段 summary，详情页再展示完整 content
+                            finalHtml += '<div class="desc">' + (blogInfo.summary || '') + '</div>';
+                            finalHtml += '<a class="detail" href="blog_detail.html?blogId=' + blogInfo.id + '">查看全文</a>';
+                            finalHtml += '</div>';
+                        }
+                        $(".container .right").html(finalHtml);
+                    } else if (result && result.code === 200) {
+                        $(".container .right").html("<p>暂无博客内容</p>");
+                    } else {
+                        $(".container .right").html("<p>" + (result && result.errMsg ? result.errMsg : "加载博客列表失败") + "</p>");
+                    }
+                },
+                error: function () {
+                    $(".container .right").html("<p>加载博客列表失败，请稍后重试</p>");
+                }
+            });
+        }
+        // 左侧卡片展示当前登录用户信息
+        function getUserInfo() {
+            var userId = sessionStorage.getItem("loginUserId");
+            if (!userId) return;
+            $.ajax({
+                type: "get",
+                url: "/user/getUserInfo",
+                data: { userId: userId },
+                success:function (result) {
+                    if(result && result.code === 200 && result.data){
+                        var userInfo=result.data;
+                        $(".container .left .card h3").text(userInfo.userName || "");
+                        if (userInfo.githubUrl) {
+                            $(".container .left .card a").attr("href", userInfo.githubUrl).text("GitHub").attr("target", "_blank");
+                        } else {
+                            $(".container .left .card a").attr("href", "#").text("📝 完善个人主页").css("color", "#bbb");
+                        }
+                        if (typeof userInfo.blogCount === "number") {
+                            $("#blog-count").text(userInfo.blogCount);
+                        }
+                    }
+                }
+            })
+        }
+    </script>
+</body>
+</html>

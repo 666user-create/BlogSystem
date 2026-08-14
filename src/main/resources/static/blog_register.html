@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客注册页</title>
+
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/register.css">
+</head>
+
+<body>
+    <div class="nav">
+        <img src="pic/logo2.jpg" alt="">
+        <span class="blog-title">我的博客系统</span>
+        <div class="space"></div>
+        <a class="nav-span" href="blog_list.html">主页</a>
+    </div>
+
+    <div class="container-login">
+        <div class="login-dialog">
+            <h3>注册</h3>
+            <div class="row">
+                <span>用户名</span>
+                <input type="text" name="username" id="username" placeholder="4-20位">
+            </div>
+            <div class="row">
+                <span>密码</span>
+                <input type="password" name="password" id="password" placeholder="6-20位">
+            </div>
+            <div class="row">
+                <span>确认密码</span>
+                <input type="password" name="confirmPassword" id="confirmPassword" placeholder="再次输入密码">
+            </div>
+            <div class="row">
+                <span>GitHub</span>
+                <input type="text" name="githubUrl" id="githubUrl" placeholder="选填，如 https://github.com/xxx">
+            </div>
+            <div class="row">
+                <button id="submit" onclick="register()">注册</button>
+            </div>
+            <div class="row tip">
+                <span>已有账号？<a href="blog_login.html">去登录</a></span>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        function register() {
+            var username = $("#username").val().trim();
+            var password = $("#password").val().trim();
+            var confirmPassword = $("#confirmPassword").val().trim();
+            var githubUrl = $("#githubUrl").val().trim();
+
+            if (!username) {
+                alert("用户名不能为空");
+                return;
+            }
+            if (username.length < 4 || username.length > 20) {
+                alert("用户名长度必须在4到20位之间");
+                return;
+            }
+            if (!password) {
+                alert("密码不能为空");
+                return;
+            }
+            if (password.length < 6 || password.length > 20) {
+                alert("密码长度必须在6到20位之间");
+                return;
+            }
+            if (password !== confirmPassword) {
+                alert("两次输入的密码不一致");
+                return;
+            }
+
+            $.ajax({
+                type: "post",
+                url: "/user/register",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    userName: username,
+                    password: password,
+                    confirmPassword: confirmPassword,
+                    githubUrl: githubUrl || null
+                }),
+                success: function (result) {
+                    if (result && result.code === 200) {
+                        alert("注册成功，请登录");
+                        location.href = "blog_login.html";
+                    } else {
+                        alert(result && result.errMsg ? result.errMsg : "注册失败");
+                    }
+                },
+                error: function () {
+                    alert("注册失败，请稍后重试");
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

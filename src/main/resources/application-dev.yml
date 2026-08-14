@@ -1,0 +1,8 @@
+# 开发环境: 与 application.yml 基础配置一致，复用即可
+# 此处无需额外覆盖，保留文件供 Maven -Pdev 激活
+server:
+  port: 8080
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

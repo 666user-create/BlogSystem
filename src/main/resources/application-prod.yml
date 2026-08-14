@@ -1,0 +1,12 @@
+# 生产环境: 覆盖数据库密码和日志配置
+spring:
+  datasource:
+    password: CHANGE_ME
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+
+logging:
+  file:
+    name: spring-blog-prod.log

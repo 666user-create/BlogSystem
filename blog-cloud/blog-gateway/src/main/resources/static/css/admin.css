@@ -1,0 +1,148 @@
+.admin-container {
+    width: 1000px;
+    max-width: 95%;
+    margin: 24px auto 0;
+    padding-bottom: 40px;
+}
+
+.admin-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding: 0 4px;
+}
+
+.admin-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.admin-badge {
+    display: inline-block;
+    padding: 3px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, #6b7db3, #7e8fc4);
+    border-radius: 12px;
+    letter-spacing: 1px;
+}
+
+/* ===== 表格 ===== */
+.admin-table-wrap {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.admin-table thead {
+    background: #f5f6fa;
+}
+
+.admin-table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: #555;
+    font-size: 13px;
+    border-bottom: 2px solid #eee;
+}
+
+.admin-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+    vertical-align: middle;
+}
+
+.admin-table tbody tr:hover {
+    background: #fafbff;
+}
+
+.admin-table .title-cell {
+    font-weight: 500;
+    color: #1a1a2e;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-table .loading,
+.admin-table .empty {
+    text-align: center;
+    color: #999;
+    padding: 40px 0;
+}
+
+/* ===== 状态标签 ===== */
+.status-on {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-off {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #fff3e0;
+    color: #e65100;
+}
+
+/* ===== 操作按钮 ===== */
+.btn-on {
+    padding: 6px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    background: #e8f5e9;
+    color: #2e7d32;
+    transition: all 0.25s ease;
+}
+
+.btn-on:hover {
+    background: #2e7d32;
+    color: #fff;
+}
+
+.btn-off {
+    padding: 6px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    background: #fff3e0;
+    color: #e65100;
+    transition: all 0.25s ease;
+}
+
+.btn-off:hover {
+    background: #e65100;
+    color: #fff;
+}
+
+/* ===== 管理导航高亮 ===== */
+.nav-admin {
+    background: rgba(255, 255, 255, 0.15);
+}

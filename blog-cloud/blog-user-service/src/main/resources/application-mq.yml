@@ -1,0 +1,18 @@
+# ============================================
+# RocketMQ 消费端配置(仅在激活 mq profile 时生效)
+# 启动: java -jar blog-user-service.jar --spring.profiles.active=mq
+# 前提: 已启动 RocketMQ namesrv + broker(默认 9876)
+# ============================================
+spring:
+  cloud:
+    stream:
+      rocketmq:
+        binder:
+          name-server: 127.0.0.1:9876
+      bindings:
+        # 消费者: bean 名 blogIn 对应 binding blog-in-0
+        # 消费 blog-service 发来的博客事件, 把作者 blog_count - 1
+        blog-in-0:
+          destination: blog-topic
+          group: blog-user-group
+          content-type: application/json

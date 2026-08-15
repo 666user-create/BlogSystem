@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  本机专用 Maven 代理配置(学习工程自带, 不会自动生效):
+  本机通过 Clash (127.0.0.1:7890) 访问外网, HTTPS 直连 Maven Central 会失败,
+  构建时显式指定:  mvn -s maven-settings.xml ...
+  如果你不需要代理, 直接忽略该文件即可。
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+    <proxies>
+        <proxy>
+            <id>clash-local</id>
+            <active>true</active>
+            <protocol>http</protocol>
+            <host>127.0.0.1</host>
+            <port>7890</port>
+            <nonProxyHosts>localhost|127.0.0.1</nonProxyHosts>
+        </proxy>
+    </proxies>
+</settings>

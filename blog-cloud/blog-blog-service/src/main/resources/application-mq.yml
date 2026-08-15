@@ -1,0 +1,20 @@
+# ============================================
+# RocketMQ 生产端配置(仅在激活 mq profile 时生效)
+# 启动: java -jar blog-blog-service.jar --spring.profiles.active=mq
+# 前提: 已启动 RocketMQ namesrv + broker(默认 9876)
+# ============================================
+app:
+  mq:
+    enabled: true
+
+spring:
+  cloud:
+    stream:
+      rocketmq:
+        binder:
+          name-server: 127.0.0.1:9876
+      bindings:
+        # 生产者: 删除博客时向 blog-topic 发消息, 由 user-service 消费
+        blog-out-0:
+          destination: blog-topic
+          content-type: application/json

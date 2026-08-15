@@ -4,6 +4,10 @@
 
 本项目同时作为个人**测试开发（测开）练习项目**，包含 JUnit5 单元测试、接口测试用例、测试文档等测试资产。
 
+> **微服务学习分支**：`blog-cloud/` 是基于本工程拆出来的 **Spring Cloud Alibaba 五组件学习项目**
+> （Nacos / Gateway / Sentinel / RocketMQ / Seata），实现与使用说明见 [docs/blog-cloud-实现文档.md](docs/blog-cloud-实现文档.md)，
+> 学习路线见 [docs/SpringCloudAlibaba学习计划.md](docs/SpringCloudAlibaba学习计划.md)。原单体工程保持不动。
+
 ## 技术栈
 
 | 层 | 技术 |

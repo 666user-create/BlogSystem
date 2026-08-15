@@ -1,0 +1,62 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: blog-service
+  cloud:
+    nacos:
+      discovery:
+        # 组件一(注册中心): 服务启动后到 Nacos 报到, 名字为 blog-service
+        server-addr: 127.0.0.1:8848
+        # Nacos 未启动时仅告警不阻断启动(默认 fail-fast 会导致注册失败直接启动失败)
+        fail-fast: false
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/blog_cloud?characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+blog:
+  jwt:
+    # 网关/用户服务/博客服务必须使用同一个密钥
+    secret: ${BLOG_JWT_SECRET:dVnsmy+SIX6pNptQdeclDSJ26EMSPEIhvZYKBTTug4k=}
+    expiration: 86400000
+
+feign:
+  client:
+    config:
+      default:
+        # 服务间调用超时调短一点, 便于 Sentinel 熔断演示
+        connect-timeout: 3000
+        read-timeout: 3000
+
+# ===== 组件四: RocketMQ 生产开关 =====
+# 默认关闭(不发消息); 激活 mq profile 后置为 true(见 application-mq.yml)
+app:
+  mq:
+    enabled: false
+
+# ===== 组件五: Seata 分布式事务 =====
+# 默认关闭: 不影响基本流程。启动 Seata Server 后, 把 enabled 改为 true 即可演示
+# 发博客 -> 写 blog_info + Feign 调 user-service 增加 blog_count, 要么全成功要么全回滚
+seata:
+  enabled: false
+  application-id: blog-service
+  tx-service-group: blog_tx_group
+  registry:
+    type: file
+  service:
+    vgroup-mapping:
+      blog_tx_group: default
+    grouplist:
+      default: 127.0.0.1:8091
+
+logging:
+  level:
+    com.example.blogcloud: info

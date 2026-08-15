@@ -1,0 +1,35 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: blog-gateway
+  cloud:
+    nacos:
+      discovery:
+        # 组件一(注册中心): 网关也注册到 Nacos, 通过 lb://user-service 等路由到下游
+        server-addr: 127.0.0.1:8848
+        # Nacos 未启动时仅告警不阻断启动(默认 fail-fast 会导致注册失败直接启动失败)
+        fail-fast: false
+    gateway:
+      routes:
+        # 用户相关请求 -> 用户服务
+        - id: user_service
+          uri: lb://user-service
+          predicates:
+            - Path=/user/**
+        # 博客相关请求 -> 博客服务
+        - id: blog_service
+          uri: lb://blog-service
+          predicates:
+            - Path=/blog/**
+
+blog:
+  jwt:
+    # 必须与各服务使用同一个密钥, 网关才能解析前端带来的 token
+    secret: ${BLOG_JWT_SECRET:dVnsmy+SIX6pNptQdeclDSJ26EMSPEIhvZYKBTTug4k=}
+    expiration: 86400000
+
+logging:
+  level:
+    com.example.blogcloud: info

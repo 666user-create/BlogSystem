@@ -26,4 +26,21 @@ java -jar blog-gateway/target/blog-gateway-0.0.1-SNAPSHOT.jar
 # 5. 浏览器访问 http://localhost:8080/blog_list.html
 ```
 
+## 测试
+
+```bash
+mvn test
+```
+
+按单体工程同一套套路（JUnit5 + Mockito）补充的单元/服务层测试，共 48 条，不依赖任何中间件（Nacos/RocketMQ/Seata 均不需要启动）：
+
+| 模块 | 测试类 | 覆盖 |
+|---|---|---|
+| blog-common | JwtUtilsTest / SecurityUtilTest | JWT 签发解析/篡改/过期、密码加盐哈希 |
+| blog-user-service | UserServiceImplTest | 登录/注册/用户信息/Feign 查作者/Seata 分支博客数+1 |
+| blog-blog-service | BlogServiceImplTest / AuthorInfoServiceTest | CRUD/作者权限/逻辑删除/RocketMQ 分支/Sentinel 兜底 |
+| blog-gateway | AuthGlobalFilterTest | 网关白名单放行/无 token 401/有效 token 注入请求头 |
+
+> 接口级测试（RestAssured + @SpringBootTest）需要 Nacos/MySQL 等环境，后续可基于 Testcontainers 补充。
+
 完整说明(组件实现细节 / 验证清单 / 常见问题):见 `docs/blog-cloud-实现文档.md`(仓库根目录)。

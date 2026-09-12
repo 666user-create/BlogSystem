@@ -99,22 +99,38 @@ src/main/resources  # 配置文件 + 前端静态页面
 | 文档 | 内容 |
 |---|---|
 | `docs/01-需求分析与测试范围说明书.md` | 需求基线、业务规则、接口清单 |
-| `docs/02-测试计划.md` | 测试策略（JUnit5 + Postman + Selenium）、环境、进度、准入准出 |
+| `docs/02-测试计划.md` | 测试策略（JUnit5 + Selenium + RestAssured + pytest + JMeter）、环境、进度、准入准出 |
 | `docs/03-测试用例设计.md` | 90 条测试用例（等价类/边界值/判定表/场景法/错误推测） |
-| `docs/04-测试执行记录.md` | 执行统计、回归记录 |
-| `docs/05-测试总结报告.md` | 缺陷分析、质量评估、结论 |
-| `docs/缺陷清单.md` | 11 条缺陷（BUG-01 ~ BUG-11），含严重级别与修复状态 |
+| `docs/04-测试执行记录.md` | 执行统计、回归记录、自动化执行明细 |
+| `docs/05-测试总结报告.md` | 缺陷分析、质量评估、性能结论 |
+| `docs/06-UI自动化测试说明.md` | Selenium 框架设计、23 条 UI 用例、截图证据 |
+| `docs/07-接口测试与抓包分析说明.md` | RestAssured + pytest 双栈、抓包明文分析 |
+| `docs/08-性能测试报告.md` | JMeter 压测结果（吞吐量 88 请求/秒、平均 5.8ms） |
+| `docs/09-简历项目描述.md` | 可直接使用的简历条目 + 面试追问准备 |
+| `docs/缺陷清单.md` | 12 条缺陷（BUG-01 ~ BUG-12），含严重级别与修复状态 |
 
-自动化测试：
+自动化测试（合计 128 条，全部通过）：
 
 ```bash
-mvn test
+mvn test                    # 单元测试 34 + 接口测试 30 + UI 自动化 23 + 冒烟 1
+cd tests-python && python -m pytest    # Python 接口测试 40（含抓包与安全检查）
 ```
 
 | 层级 | 框架 | 覆盖 |
 |---|---|---|
-| 单元测试 | JUnit5 + Mockito | 工具类（JWT/密码）+ 服务层（`UserServiceImpl`、`BlogServiceImpl` 全分支） |
-| 接口测试 | RestAssured + JUnit5 | 用户/博客/管理端/鉴权 30 条接口用例（`@SpringBootTest` 随机端口 + 独立 test profile） |
-| UI 自动化 | Selenium WebDriver | 6 条核心流程用例（设计见测试文档，脚本待补） |
+| 单元测试 | JUnit5 + Mockito | 工具类（JWT/密码）+ 服务层（`UserServiceImpl`、`BlogServiceImpl` 全分支）——34 条 |
+| 接口测试（Java） | RestAssured + JUnit5 | 用户/博客/管理端/鉴权 30 条（`@SpringBootTest` 随机端口 + 独立 test profile） |
+| 接口测试（Python） | pytest + requests + Allure | 40 条（含抓包明文分析、SQL 注入检查），报告见 `reports/allure-python/` |
+| UI 自动化 | Selenium + JUnit5 | 23 条核心流程（Headless Chrome + 显式等待 + 截图断言），证据见 `docs/test-evidence/ui/` |
 
-> 接口测试需要本机 MySQL 已启动，连接配置见 `src/test/resources/application-test.yml`（与开发/生产配置隔离）。
+测试证据与报告：
+
+| 资产 | 位置 |
+|---|---|
+| UI 截图证据（23 张） | `docs/test-evidence/ui/` |
+| 抓包证据（登录请求明文分析） | `docs/test-evidence/capture/login-capture.json` |
+| Allure HTML 报告 | `reports/allure-python/index.html` |
+| JMeter 压测计划 / 结果 / HTML 报告 | `perf/BlogSystem-性能测试计划.jmx`、`perf/result.jtl`、`perf/report/index.html` |
+
+> 需要本机 MySQL 已启动（连接配置见 `src/test/resources/application-test.yml`，与开发/生产配置隔离）。
+> 性能测试复现：先 `mvn spring-boot:run -Dspring-boot.run.profiles=dev`，再 `jmeter -n -t perf/BlogSystem-性能测试计划.jmx -l perf/result.jtl -e -o perf/report`。

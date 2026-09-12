@@ -22,3 +22,12 @@ Thumbs.db
 # ===== 本地环境配置（含数据库密码等敏感信息）=====
 application-local.yml
 application-local.properties
+
+# ===== 本地测试工具（Allure/JMeter 等，不入库）=====
+.tools/
+
+# ===== 测试报告（可再生的生成物，用命令重新生成，不入库）=====
+# Allure / JMeter 原始数据与计划文件是入库的，HTML 报告目录不入库
+allure-results/
+reports/
+perf/report/

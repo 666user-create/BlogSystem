@@ -49,6 +49,22 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- UI 自动化测试：Selenium WebDriver（4.6+ 由 Selenium Manager 自动管理浏览器驱动） -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>4.27.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- 测试报告：Allure（JUnit5 集成，生成测试结果数据供 allure 命令行渲染 HTML 报告） -->
+        <dependency>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-junit5</artifactId>
+            <version>2.29.1</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- JWT -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

@@ -21,7 +21,7 @@ def publish_blog(base_url: str, headers: dict, title: str, content: str = "测�
     assert resp.json()["code"] == 200, f"测试数据准备失败: {resp.text}"
 
     list_resp = requests.get(f"{base_url}/blog/getList", headers=headers, timeout=10)
-    return list_resp.json()["data"][0]["id"]
+    return list_resp.json()["data"]["list"][0]["id"]
 
 
 @allure.feature("博客模块")
@@ -29,7 +29,7 @@ class TestBlogList:
     """博客列表"""
 
     @allure.story("列表")
-    @allure.title("TC-LIST-01 列表返回已上架博客数组")
+    @allure.title("TC-LIST-01 列表返回分页结构，当前页为博客数组")
     def test_get_list(self, base_url, auth):
         publish_blog(base_url, auth["headers"], "列表接口测试博客")
 
@@ -37,8 +37,13 @@ class TestBlogList:
         body = resp.json()
 
         assert body["code"] == 200
-        assert isinstance(body["data"], list)
-        assert len(body["data"]) > 0
+        assert isinstance(body["data"]["list"], list)
+        assert len(body["data"]["list"]) > 0
+        # 分页元信息
+        assert body["data"]["total"] >= 1
+        assert body["data"]["pageNum"] == 1
+        assert body["data"]["pageSize"] == 10
+        assert body["data"]["pages"] >= 1
 
     @allure.story("列表")
     @allure.title("TC-LIST-07 列表字段完整性")
@@ -46,10 +51,87 @@ class TestBlogList:
         publish_blog(base_url, auth["headers"], "字段完整性测试")
 
         resp = requests.get(f"{base_url}/blog/getList", headers=auth["headers"], timeout=10)
-        first = resp.json()["data"][0]
+        first = resp.json()["data"]["list"][0]
 
         for field in ("id", "title", "content", "userId", "createTime"):
             assert field in first, f"列表响应应包含字段 {field}"
+
+
+@allure.feature("博客模块")
+class TestBlogPagination:
+    """博客列表分页（BUG-06 修复后的回归用例）"""
+
+    @allure.story("分页")
+    @allure.title("TC-LIST-09 pageSize 生效：每页最多返回 pageSize 条")
+    def test_page_size_applied(self, base_url, auth):
+        for i in range(3):
+            publish_blog(base_url, auth["headers"], f"分页测试博客{i}")
+
+        body = requests.get(
+            f"{base_url}/blog/getList",
+            params={"pageNum": 1, "pageSize": 2},
+            headers=auth["headers"],
+            timeout=10,
+        ).json()
+
+        assert body["data"]["pageSize"] == 2
+        assert len(body["data"]["list"]) <= 2, "当前页条数不应超过 pageSize"
+
+    @allure.story("分页")
+    @allure.title("TC-LIST-10 页码越界返回空列表，total 仍准确")
+    def test_page_out_of_range(self, base_url, auth):
+        publish_blog(base_url, auth["headers"], "越界页码测试博客")
+
+        body = requests.get(
+            f"{base_url}/blog/getList",
+            params={"pageNum": 9999, "pageSize": 10},
+            headers=auth["headers"],
+            timeout=10,
+        ).json()
+
+        assert body["code"] == 200
+        assert body["data"]["list"] == [], "越界页码应返回空列表"
+        assert body["data"]["total"] > 0, "total 必须仍然准确"
+
+    @allure.story("分页")
+    @allure.title("TC-LIST-11 分页参数非法返回 400（pageNum=0 / pageSize=100）")
+    def test_invalid_page_param(self, base_url, auth):
+        for params in ({"pageNum": 0}, {"pageNum": -1}, {"pageSize": 0}, {"pageSize": 100}):
+            resp = requests.get(
+                f"{base_url}/blog/getList",
+                params=params,
+                headers=auth["headers"],
+                timeout=10,
+            )
+            assert resp.status_code == 400, f"参数 {params} 应被校验拦截"
+            assert resp.json()["errMsg"] == "参数校验失败"
+
+    @allure.story("分页")
+    @allure.title("TC-LIST-12 不传分页参数时使用默认值（pageNum=1 / pageSize=10）")
+    def test_default_page_param(self, base_url, auth):
+        body = requests.get(f"{base_url}/blog/getList", headers=auth["headers"], timeout=10).json()
+
+        assert body["data"]["pageNum"] == 1
+        assert body["data"]["pageSize"] == 10
+
+    @allure.story("分页")
+    @allure.title("TC-LIST-13 翻页不重不漏：两页数据无交集")
+    def test_pages_not_overlapping(self, base_url, auth):
+        for i in range(4):
+            publish_blog(base_url, auth["headers"], f"翻页唯一性测试{i}")
+
+        page1 = requests.get(
+            f"{base_url}/blog/getList", params={"pageNum": 1, "pageSize": 3},
+            headers=auth["headers"], timeout=10,
+        ).json()["data"]["list"]
+        page2 = requests.get(
+            f"{base_url}/blog/getList", params={"pageNum": 2, "pageSize": 3},
+            headers=auth["headers"], timeout=10,
+        ).json()["data"]["list"]
+
+        ids1 = {item["id"] for item in page1}
+        ids2 = {item["id"] for item in page2}
+        assert ids1.isdisjoint(ids2), "第 1 页与第 2 页不应出现重复数据"
 
 
 @allure.feature("博客模块")
@@ -121,7 +203,7 @@ class TestBlogAdd:
 
         # 断言：新博客出现在列表中
         list_body = requests.get(f"{base_url}/blog/getList", headers=auth["headers"], timeout=10).json()
-        assert any(item["title"] == title for item in list_body["data"])
+        assert any(item["title"] == title for item in list_body["data"]["list"])
 
     @allure.story("新增")
     @allure.title("TC-ADD-02 标题为空参数校验失败(400)")

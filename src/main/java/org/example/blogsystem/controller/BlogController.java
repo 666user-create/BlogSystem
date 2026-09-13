@@ -2,18 +2,18 @@ package org.example.blogsystem.controller;
 
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.example.blogsystem.common.constant.Constants;
 import org.example.blogsystem.common.exception.BlogException;
 import org.example.blogsystem.common.pojo.response.BlogInfoResponse;
+import org.example.blogsystem.common.pojo.response.PageResult;
 import org.example.blogsystem.common.utils.JwtUtils;
 import org.example.blogsystem.service.BlogService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 
 /**
@@ -34,12 +34,20 @@ public class BlogController {
     private HttpServletRequest request;
 
     /**
-     * 获取全部博客列表
+     * 分页获取博客列表（仅已上架、未删除，按 id 倒序）
+     *
+     * @param pageNum  页码，从 1 开始，默认 1
+     * @param pageSize 每页条数，默认 10，上限 50（防止一次拉取过多数据）
      */
     @GetMapping("/getList")
-    public List<BlogInfoResponse> getList() {
-        log.info("获取全部博客列表");
-        return blogService.getList();
+    public PageResult<BlogInfoResponse> getList(
+            @RequestParam(defaultValue = "1")
+            @Min(value = 1, message = "页码必须大于0") Integer pageNum,
+            @RequestParam(defaultValue = "10")
+            @Min(value = 1, message = "每页条数必须大于0")
+            @Max(value = 50, message = "每页条数不能超过50") Integer pageSize) {
+        log.info("分页获取博客列表, pageNum={}, pageSize={}", pageNum, pageSize);
+        return blogService.getList(pageNum, pageSize);
     }
 
     /**
@@ -85,13 +93,18 @@ public class BlogController {
     }
 
     /**
-     * 管理员获取全部博客列表（含下架）
+     * 管理员分页获取全部博客列表（含下架）
      */
     @GetMapping("/adminList")
-    public List<BlogInfoResponse> adminList() {
+    public PageResult<BlogInfoResponse> adminList(
+            @RequestParam(defaultValue = "1")
+            @Min(value = 1, message = "页码必须大于0") Integer pageNum,
+            @RequestParam(defaultValue = "10")
+            @Min(value = 1, message = "每页条数必须大于0")
+            @Max(value = 50, message = "每页条数不能超过50") Integer pageSize) {
         checkAdmin();
-        log.info("管理员获取全部博客列表");
-        return blogService.adminList();
+        log.info("管理员分页获取博客列表, pageNum={}, pageSize={}", pageNum, pageSize);
+        return blogService.adminList(pageNum, pageSize);
     }
 
     /**

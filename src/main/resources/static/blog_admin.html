@@ -42,11 +42,22 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="pager" id="pager" style="display:none">
+            <span class="pager-info">共 <b id="pager-total">0</b> 篇 · 第 <b id="pager-current">0</b>/<b id="pager-pages">0</b> 页</span>
+            <button type="button" id="pager-prev" onclick="changePage(-1)">上一页</button>
+            <button type="button" id="pager-next" onclick="changePage(1)">下一页</button>
+        </div>
     </div>
 
     <script src="js/jquery.min.js"></script>
     <script src="js/common.js"></script>
     <script>
+        // ===== 分页状态 =====
+        var PAGE_SIZE = 10;    // 每页条数（后端限制最大 50）
+        var currentPage = 1;   // 当前页码
+        var totalPages = 0;    // 总页数（以后端返回为准）
+
         $(function () {
             // 非 admin 用户拦截
             var userName = sessionStorage.getItem("userName") || "";
@@ -55,29 +66,42 @@
                 location.href = "blog_list.html";
                 return;
             }
-            loadAdminList();
+            loadAdminList(1);
         });
 
-        function loadAdminList() {
+        /**
+         * 分页加载博客列表（含下架）
+         * @param pageNum 页码（从 1 开始）
+         */
+        function loadAdminList(pageNum) {
             $.ajax({
                 type: "get",
                 url: "/blog/adminList",
+                data: { pageNum: pageNum, pageSize: PAGE_SIZE },
                 success: function (result) {
-                    if (result && result.code === 200 && Array.isArray(result.data)) {
-                        renderTable(result.data);
-                    } else {
-                        $("#blog-tbody").html('<tr><td colspan="5">' + (result && result.errMsg ? result.errMsg : "加载失败") + '</td></tr>');
+                    if (!result || result.code !== 200 || !result.data) {
+                        $("#blog-tbody").html('<tr><td colspan="5">' + ((result && result.errMsg) || "加载失败") + '</td></tr>');
+                        renderPager(0, 0, 0);
+                        return;
                     }
+                    var pageData = result.data;
+                    currentPage = pageData.pageNum || 1;
+                    totalPages = pageData.pages || 0;
+                    renderTable(pageData.list || []);
+                    renderPager(pageData.total, currentPage, totalPages);
                 },
                 error: function () {
                     $("#blog-tbody").html('<tr><td colspan="5">加载失败，请稍后重试</td></tr>');
+                    renderPager(0, 0, 0);
                 }
             });
         }
 
         function renderTable(list) {
             if (list.length === 0) {
-                $("#blog-tbody").html('<tr><td colspan="5" class="empty">暂无博客</td></tr>');
+                // 区分"没有任何博客"和"页码越界"
+                var emptyText = (currentPage > 1) ? "这一页没有内容了，请返回上一页" : "暂无博客";
+                $("#blog-tbody").html('<tr><td colspan="5" class="empty">' + emptyText + '</td></tr>');
                 return;
             }
             var html = "";
@@ -101,6 +125,27 @@
             $("#blog-tbody").html(html);
         }
 
+        /** 渲染翻页控件 */
+        function renderPager(total, pageNum, pages) {
+            var $pager = $("#pager");
+            if (!$pager.length) return;
+
+            $pager.find("#pager-total").text(total || 0);
+            $pager.find("#pager-current").text(pages > 0 ? pageNum : 0);
+            $pager.find("#pager-pages").text(pages || 0);
+            $pager.find("#pager-prev").prop("disabled", !(pages > 0 && pageNum > 1));
+            $pager.find("#pager-next").prop("disabled", !(pages > 0 && pageNum < pages));
+            $pager.toggle(pages > 1);
+        }
+
+        /** 翻页：delta 为 -1（上一页）或 1（下一页） */
+        function changePage(delta) {
+            var target = currentPage + delta;
+            if (target < 1) return;
+            if (totalPages > 0 && target > totalPages) return;
+            loadAdminList(target);
+        }
+
         function togglePublish(blogId, btn) {
             if (!confirm("确定切换该博客的上下架状态吗？")) return;
             $.ajax({
@@ -109,7 +154,8 @@
                 data: { blogId: blogId },
                 success: function (result) {
                     if (result && result.code === 200) {
-                        loadAdminList();
+                        // 切换后刷新"当前页"，保留页码
+                        loadAdminList(currentPage);
                     } else {
                         alert(result && result.errMsg ? result.errMsg : "操作失败");
                     }

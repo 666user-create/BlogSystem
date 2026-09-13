@@ -23,7 +23,8 @@ class TestAdminList:
         body = resp.json()
 
         assert body["code"] == 200
-        assert isinstance(body["data"], list)
+        assert isinstance(body["data"]["list"], list)
+        assert "total" in body["data"]
 
     @allure.story("管理员列表")
     @allure.title("TC-ADM-02 非管理员访问管理列表被拒绝")
@@ -63,7 +64,7 @@ class TestTogglePublish:
 
         # 下架后普通列表不再展示
         list_body = requests.get(f"{base_url}/blog/getList", headers=auth["headers"], timeout=10).json()
-        assert all(item["id"] != blog_id for item in list_body["data"]), "下架博客不应出现在普通列表"
+        assert all(item["id"] != blog_id for item in list_body["data"]["list"]), "下架博客不应出现在普通列表"
 
         # 第二次切换：下架 -> 上架（恢复环境）
         resp2 = requests.post(

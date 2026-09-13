@@ -122,7 +122,7 @@
         <hashTree>
           <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取第一篇博客id" enabled="true">
             <stringProp name="JSONPostProcessor.referenceNames">blogId</stringProp>
-            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data[0].id</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.list[0].id</stringProp>
             <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
             <stringProp name="JSONPostProcessor.defaultValues">1</stringProp>
           </JSONPostProcessor>

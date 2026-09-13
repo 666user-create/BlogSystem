@@ -1,5 +1,7 @@
-/* ===== 博客列表卡片 ===== */
-.right > .blog {
+/* ===== 博客列表卡片 =====
+   注意：卡片由 JS 渲染到 #blog-list 内部，因此这里使用后代选择器（.right .blog），
+   不要写成 .right > .blog（直接子选择器），否则一旦层级调整样式就会整体失效。 */
+.right .blog {
     background: #fff;
     border-radius: 12px;
     padding: 24px 28px;
@@ -10,14 +12,14 @@
     border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
-.right > .blog:hover {
+.right .blog:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
     border-color: rgba(107, 125, 179, 0.15);
 }
 
 /* 左侧装饰条 */
-.right > .blog::before {
+.right .blog::before {
     content: "";
     position: absolute;
     left: 0;
@@ -30,11 +32,11 @@
     transition: transform 0.35s ease;
 }
 
-.right > .blog:hover::before {
+.right .blog:hover::before {
     transform: scaleY(1);
 }
 
-.right > .blog > .title {
+.right .blog .title {
     text-align: left;
     font-weight: 700;
     font-size: 18px;
@@ -43,11 +45,11 @@
     transition: color 0.25s ease;
 }
 
-.right > .blog:hover > .title {
+.right .blog:hover .title {
     color: #4a5a8a;
 }
 
-.right > .blog > .date {
+.right .blog .date {
     text-align: left;
     color: #8e99a4;
     font-size: 13px;
@@ -57,7 +59,7 @@
     gap: 6px;
 }
 
-.right > .blog > .date::before {
+.right .blog .date::before {
     content: "";
     display: inline-block;
     width: 14px;
@@ -66,7 +68,7 @@
     opacity: 0.7;
 }
 
-.right > .blog > .desc {
+.right .blog .desc {
     font-size: 14px;
     color: #666;
     line-height: 1.8;
@@ -78,7 +80,7 @@
     overflow: hidden;
 }
 
-.right > .blog > .detail {
+.right .blog .detail {
     display: inline-block;
     padding: 8px 24px;
     font-size: 13px;
@@ -92,17 +94,19 @@
     background: transparent;
 }
 
-.right > .blog > .detail:hover {
+.right .blog .detail:hover {
     color: #fff;
     background: linear-gradient(135deg, #6b7db3, #7e8fc4);
     border-color: transparent;
     box-shadow: 0 4px 14px rgba(107, 125, 179, 0.3);
 }
 
-/* 空状态 */
-.right > p {
+/* 空状态 / 错误提示 */
+#blog-list > p {
     text-align: center;
     color: #999;
     font-size: 15px;
     padding: 60px 0;
 }
+
+/* 翻页控件样式放在 common.css（列表页与管理员页共用） */

@@ -1,9 +1,11 @@
 package org.example.blogsystem.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.example.blogsystem.common.exception.BlogException;
 import org.example.blogsystem.common.pojo.dataObject.BlogInfo;
 import org.example.blogsystem.common.pojo.response.BlogInfoResponse;
+import org.example.blogsystem.common.pojo.response.PageResult;
 import org.example.blogsystem.mapper.BlogInfoMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -191,24 +193,72 @@ class BlogServiceImplTest {
     // ==================== 列表 / 详情 / 统计 ====================
 
     @Test
-    @DisplayName("列表查询：返回的数据被正确转换为响应对象")
+    @DisplayName("列表查询：返回当前页数据，并透传分页信息")
     void getList_success() {
         BlogInfo b1 = buildBlog(1, "1");
         BlogInfo b2 = buildBlog(2, "1");
-        when(blogInfoMapper.selectList(any(QueryWrapper.class))).thenReturn(Arrays.asList(b1, b2));
+        Page<BlogInfo> mockPage = new Page<>(1, 10);
+        mockPage.setRecords(Arrays.asList(b1, b2));
+        mockPage.setTotal(2);
 
-        List<BlogInfoResponse> list = blogService.getList();
+        when(blogInfoMapper.selectPage(any(Page.class), any(QueryWrapper.class))).thenReturn(mockPage);
 
-        assertEquals(2, list.size());
-        assertEquals(1, list.get(0).getId());
-        assertEquals("标题", list.get(0).getTitle());
+        PageResult<BlogInfoResponse> result = blogService.getList(1, 10);
+
+        assertEquals(2, result.getList().size());
+        assertEquals(1, result.getList().get(0).getId());
+        assertEquals("标题", result.getList().get(0).getTitle());
+        assertEquals(2, result.getTotal());
+        assertEquals(1, result.getPageNum());
+        assertEquals(10, result.getPageSize());
+        assertEquals(1, result.getPages());
     }
 
     @Test
-    @DisplayName("列表查询：无数据返回空列表(不抛异常)")
+    @DisplayName("列表查询：无数据时返回空列表、total=0、pages=0（不抛异常）")
     void getList_empty() {
-        when(blogInfoMapper.selectList(any(QueryWrapper.class))).thenReturn(Collections.emptyList());
-        assertEquals(0, blogService.getList().size());
+        Page<BlogInfo> emptyPage = new Page<>(1, 10);
+        emptyPage.setRecords(Collections.emptyList());
+        emptyPage.setTotal(0);
+
+        when(blogInfoMapper.selectPage(any(Page.class), any(QueryWrapper.class))).thenReturn(emptyPage);
+
+        PageResult<BlogInfoResponse> result = blogService.getList(1, 10);
+
+        assertEquals(0, result.getList().size());
+        assertEquals(0, result.getTotal());
+        assertEquals(0, result.getPages());
+    }
+
+    @Test
+    @DisplayName("列表查询：总页数按向上取整计算（25 条 / 每页 10 条 = 3 页）")
+    void getList_pagesRoundedUp() {
+        Page<BlogInfo> mockPage = new Page<>(1, 10);
+        mockPage.setRecords(Collections.singletonList(buildBlog(1, "1")));
+        mockPage.setTotal(25);
+
+        when(blogInfoMapper.selectPage(any(Page.class), any(QueryWrapper.class))).thenReturn(mockPage);
+
+        PageResult<BlogInfoResponse> result = blogService.getList(1, 10);
+
+        assertEquals(25, result.getTotal());
+        assertEquals(3, result.getPages(), "25 条数据每页 10 条应算出 3 页");
+    }
+
+    @Test
+    @DisplayName("列表查询：页码超出范围时返回空列表，但 total 仍准确（末页之后的越界访问）")
+    void getList_pageOutOfRange() {
+        Page<BlogInfo> emptyPage = new Page<>(99, 10);   // 第 99 页，实际只有 2 页
+        emptyPage.setRecords(Collections.emptyList());
+        emptyPage.setTotal(15);
+
+        when(blogInfoMapper.selectPage(any(Page.class), any(QueryWrapper.class))).thenReturn(emptyPage);
+
+        PageResult<BlogInfoResponse> result = blogService.getList(99, 10);
+
+        assertEquals(0, result.getList().size(), "越界页码应返回空列表");
+        assertEquals(15, result.getTotal(), "total 必须仍然准确");
+        assertEquals(2, result.getPages());
     }
 
     @Test

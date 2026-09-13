@@ -22,7 +22,7 @@ import static org.hamcrest.Matchers.notNullValue;
 class AdminApiTest extends BaseApiTest {
 
     @Test
-    @DisplayName("TC-ADM-01 管理员获取全部博客列表(含下架)")
+    @DisplayName("TC-ADM-01 管理员获取全部博客列表(含下架，分页结构)")
     void adminList_admin_success() {
         given()
                 .header("user_token", adminToken)
@@ -31,7 +31,9 @@ class AdminApiTest extends BaseApiTest {
         .then()
                 .statusCode(200)
                 .body("code", equalTo(200))
-                .body("data", notNullValue());
+                .body("data.list", notNullValue())
+                .body("data.total", notNullValue())
+                .body("data.pageSize", equalTo(10));
     }
 
     @Test
@@ -126,7 +128,7 @@ class AdminApiTest extends BaseApiTest {
                 .statusCode(200)
                 .body("code", equalTo(200));
 
-        // 新增接口不返回 id，从列表取最新一条（列表按 id 倒序，data[0] 即最新）
+        // 新增接口不返回 id，从列表第一页取最新一条（按 id 倒序，list[0] 即最新）
         return given()
                 .header("user_token", token)
         .when()
@@ -135,6 +137,6 @@ class AdminApiTest extends BaseApiTest {
                 .statusCode(200)
                 .extract()
                 .jsonPath()
-                .getInt("data[0].id");
+                .getInt("data.list[0].id");
     }
 }

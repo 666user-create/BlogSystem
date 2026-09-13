@@ -32,7 +32,7 @@
                     <tr>
                         <th style="width:60px">ID</th>
                         <th>标题</th>
-                        <th style="width:140px">更新时间</th>
+                        <th style="width:140px">创建时间</th>
                         <th style="width:80px">状态</th>
                         <th style="width:100px">操作</th>
                     </tr>
@@ -88,12 +88,12 @@
                 var statusText = isPublished ? "上架" : "下架";
                 var btnText = isPublished ? "下架" : "上架";
                 var btnClass = isPublished ? "btn-off" : "btn-on";
-                var updateTime = blog.createTime || "";
+                var createTime = blog.createTime || "";
 
                 html += '<tr>';
                 html += '<td>' + blog.id + '</td>';
                 html += '<td class="title-cell">' + escapeHtml(blog.title || "") + '</td>';
-                html += '<td>' + updateTime + '</td>';
+                html += '<td>' + createTime + '</td>';
                 html += '<td><span class="' + statusClass + '">' + statusText + '</span></td>';
                 html += '<td><button class="' + btnClass + '" onclick="togglePublish(' + blog.id + ',this)">' + btnText + '</button></td>';
                 html += '</tr>';

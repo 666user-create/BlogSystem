@@ -611,4 +611,79 @@ class BlogUiTest {
         assertTrue(adminEntry.isDisplayed(), "管理员应看到管理入口");
         screenshot("UI-23-管理员入口展示");
     }
+
+    // ==================================================================
+    // 六、页面数据展示正确性
+    // 说明：前面的用例只保证"操作能成功"，这一组专门验证"显示的数据对不对"——
+    //      这类问题（内容不回显、Markdown 不渲染、表头与数据不符）不会让操作失败，
+    //      但会让用户看到错误内容，属于最容易漏测的场景。
+    // ==================================================================
+
+    @Test
+    @Order(24)
+    @DisplayName("UI-24 详情页正确渲染 Markdown 内容")
+    void ui24_detailRendersMarkdown() {
+        String markdown = "## 二级标题\n\n**加粗文本**";
+        registerAndLogin("md");
+        publishBlog("Markdown渲染测试博客", markdown);
+        openFirstBlogDetail();
+
+        WebElement detail = new WebDriverWait(driver, WAIT)
+                .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".content .detail")));
+        String innerHtml = detail.getAttribute("innerHTML");
+        screenshot("UI-24-详情页Markdown渲染");
+
+        assertTrue(innerHtml.contains("<h2") || innerHtml.contains("<strong"),
+                "详情页应把 Markdown 渲染为 HTML（应出现 h2/strong 标签），实际 innerHTML: " + innerHtml);
+    }
+
+    @Test
+    @Order(25)
+    @DisplayName("UI-25 管理页表头列与数据字段一致")
+    void ui25_adminTableHeaderMatchesData() {
+        String title = "管理页字段一致性" + (System.currentTimeMillis() % 100000);
+        registerAndLogin("admcol");
+        publishBlog(title, "内容");
+
+        loginExpectSuccess("admin", "admin123");
+        driver.get(baseUrl + "/blog_admin.html");
+        new WebDriverWait(driver, WAIT).until(d ->
+                !d.findElement(By.id("blog-tbody")).getText().contains("加载中"));
+
+        List<String> headers = driver.findElements(By.cssSelector(".admin-table thead th"))
+                .stream().map(WebElement::getText).toList();
+        WebElement row = driver.findElement(By.xpath(
+                "//tbody[@id='blog-tbody']//tr[td[contains(text(),'" + title + "')]]"));
+        List<String> cells = row.findElements(By.tagName("td")).stream().map(WebElement::getText).toList();
+        screenshot("UI-25-管理页字段一致性");
+
+        assertEquals(headers.size(), cells.size(), "表头列数与数据列数应一致");
+        for (int i = 0; i < headers.size(); i++) {
+            if (headers.get(i).contains("时间")) {
+                assertFalse(cells.get(i) == null || cells.get(i).isBlank(),
+                        "管理页『" + headers.get(i) + "』列应有数据，实际为空");
+            }
+        }
+    }
+
+    @Test
+    @Order(26)
+    @DisplayName("UI-26 列表页展示的标题与摘要与原文一致")
+    void ui26_listDataMatchesContent() {
+        String title = "列表数据一致性" + (System.currentTimeMillis() % 100000);
+        registerAndLogin("listdata");
+        publishBlog(title, "列表摘要应展示这段文字");
+
+        driver.get(baseUrl + "/blog_list.html");
+        WebElement card = new WebDriverWait(driver, WAIT).until(ExpectedConditions.visibilityOfElementLocated(
+                By.xpath("//div[@class='blog'][div[@class='title' and contains(text(),'" + title + "')]]")));
+
+        String cardTitle = card.findElement(By.className("title")).getText();
+        String cardDesc = card.findElement(By.className("desc")).getText();
+        screenshot("UI-26-列表数据一致性");
+
+        assertEquals(title, cardTitle, "列表卡片标题应与原文一致");
+        assertTrue(cardDesc.contains("列表摘要应展示这段文字"),
+                "列表摘要应展示原文内容，实际: " + cardDesc);
+    }
 }

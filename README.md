@@ -118,17 +118,17 @@ cd tests-python && python -m pytest     # 接口自动化 45 条（含抓包与�
 
 | 层级 | 框架 | 覆盖 |
 |---|---|---|
-| UI 自动化 | Selenium + Java | 33 条核心流程（Headless Chrome + 显式等待 + 截图断言 + 样式断言），证据见 `docs/test-evidence/ui/` |
-| 接口自动化 | Python + pytest + requests + Allure | 45 条（含分页、抓包明文分析、SQL 注入检查），报告见 `reports/allure-python/` |
+| UI 自动化 | Selenium + Java | 33 条核心流程（Headless Chrome + 显式等待 + 截图断言 + 样式断言），证据运行后本地生成 |
+| 接口自动化 | Python + pytest + requests + Allure | 45 条（含分页、抓包明文分析、SQL 注入检查） |
 
-测试证据与报告：
+> 仓库只保留**可复现的脚本与测试结论**，不提交"跑一次就有"的产物（截图 / 抓包 json / JMeter 原始结果），
+> 它们已在 `.gitignore` 中忽略，跑一次对应命令即可在本地生成：
 
-| 资产 | 位置 |
+| 产物（本地生成，不入库） | 生成方式 |
 |---|---|
-| UI 截图证据（34 张） | `docs/test-evidence/ui/` |
-| 抓包证据（登录请求明文分析） | `docs/test-evidence/capture/login-capture.json` |
-| Allure HTML 报告 | `reports/allure-python/index.html` |
-| JMeter 压测计划 / 结果 / HTML 报告 | `perf/BlogSystem-性能测试计划.jmx`、`perf/result.jtl`、`perf/report/index.html` |
+| UI 截图 34 张 + 弹框文本证据 | `mvn test -Dtest=BlogUiTest` → `docs/test-evidence/ui/` |
+| 抓包证据（登录请求明文分析） | `python -m pytest test_security_capture.py` → `docs/test-evidence/capture/login-capture.json` |
+| JMeter 原始结果与 HTML 报告 | `jmeter -n -t perf/BlogSystem-性能测试计划.jmx -l perf/result.jtl -e -o perf/report`（压测计划本身入库） |
+| Allure HTML 报告 | `python -m pytest`（用例已用 `@allure.*` 标注） |
 
 > 需要本机 MySQL 已启动（连接配置见 `src/test/resources/application-test.yml`，与开发/生产配置隔离）。
-> 性能测试复现：先 `mvn spring-boot:run -Dspring-boot.run.profiles=dev`，再 `jmeter -n -t perf/BlogSystem-性能测试计划.jmx -l perf/result.jtl -e -o perf/report`。

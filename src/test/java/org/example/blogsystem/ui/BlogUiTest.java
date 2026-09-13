@@ -686,4 +686,59 @@ class BlogUiTest {
         assertTrue(cardDesc.contains("列表摘要应展示这段文字"),
                 "列表摘要应展示原文内容，实际: " + cardDesc);
     }
+
+    // ==================================================================
+    // 七、作者展示与操作权限
+    // ==================================================================
+
+    @Test
+    @Order(27)
+    @DisplayName("UI-27 详情页展示作者名")
+    void ui27_detailShowsAuthorName() {
+        String userName = registerAndLogin("authname");
+        publishBlog("作者显示测试博客", "内容");
+        openFirstBlogDetail();
+
+        WebElement author = new WebDriverWait(driver, WAIT)
+                .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".content .author")));
+        screenshot("UI-27-详情页作者名");
+
+        assertEquals("作者：" + userName, author.getText(), "详情页正文区应展示作者名");
+    }
+
+    @Test
+    @Order(28)
+    @DisplayName("UI-28 作者本人可见编辑/删除按钮")
+    void ui28_ownerSeesOperatingButtons() {
+        registerAndLogin("ownerbtn");
+        publishBlog("作者可见按钮测试", "内容");
+        openFirstBlogDetail();
+
+        WebElement operating = new WebDriverWait(driver, WAIT)
+                .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".content .operating")));
+        screenshot("UI-28-作者可见编辑删除");
+
+        assertTrue(operating.isDisplayed(), "作者本人应看到编辑/删除按钮");
+    }
+
+    @Test
+    @Order(29)
+    @DisplayName("UI-29 非作者不可见编辑/删除按钮")
+    void ui29_nonOwnerCannotSeeOperatingButtons() {
+        // 用户 A 发表博客，并记下 blogId
+        registerAndLogin("ownerA");
+        publishBlog("他人博客按钮隐藏测试", "内容");
+        String blogId = openFirstBlogDetail();
+
+        // 换成用户 B 登录，直接访问 A 的博客
+        String otherUser = registerAndLogin("otherB");
+        driver.get(baseUrl + "/blog_detail.html?blogId=" + blogId);
+        // 等详情渲染完成（作者行出现即说明数据已加载、权限判断已执行）
+        new WebDriverWait(driver, WAIT)
+                .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".content .author")));
+        screenshot("UI-29-非作者无编辑删除");
+
+        assertFalse(driver.findElement(By.cssSelector(".content .operating")).isDisplayed(),
+                "非作者（当前登录：" + otherUser + "）不应看到编辑/删除按钮");
+    }
 }

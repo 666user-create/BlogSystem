@@ -42,8 +42,10 @@
             <div class="content">
                 <div class="title"></div>
                 <div class="date"></div>
+                <div class="author"></div>
                 <div class="detail"></div>
-                <div class="operating">
+                <!-- 编辑/删除仅作者本人可见：默认隐藏，由 JS 判断当前登录用户是否为作者后再显示 -->
+                <div class="operating" style="display:none">
                     <button onclick="toUpdate()">编辑</button>
                     <button onclick="deleteBlog()">删除</button>
                 </div>
@@ -88,6 +90,14 @@
                             html = $("<div>").text(raw).html();  // 兜底：转义后按纯文本展示
                         }
                         $(".content .detail").html(html);
+
+                        // 仅作者本人显示"编辑/删除"按钮：
+                        // 当前登录用户 id 与博客作者 id 一致时才展示（后端另有权限校验兜底）
+                        var loginUserId = sessionStorage.getItem("loginUserId");
+                        if (loginUserId && String(loginUserId) === String(result.data.userId)) {
+                            $(".content .operating").show();
+                        }
+
                         // 根据当前博客获取作者信息
                         loadAuthorInfo(blogId);
                     } else {
@@ -109,7 +119,9 @@
                 success: function (result) {
                     if (result && result.code === 200 && result.data) {
                         var userInfo = result.data;
+                        // 左侧卡片 + 正文区都展示作者，读者一眼能看到"谁写的"
                         $(".container .left .card h3").text(userInfo.userName || "");
+                        $(".content .author").text("作者：" + (userInfo.userName || "未知作者"));
                         if (userInfo.githubUrl) {
                             $(".container .left .card a").attr("href", userInfo.githubUrl).text("GitHub").attr("target", "_blank");
                         } else {

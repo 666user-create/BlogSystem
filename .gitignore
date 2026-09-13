@@ -42,3 +42,6 @@ blog-cloud/derby.log
 
 # ===== 性能测试运行日志 =====
 perf/jmeter.log
+
+# ===== 应用运行日志（单体工程，已统一收进 logs/）=====
+logs/

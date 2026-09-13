@@ -35,4 +35,5 @@ mybatis-plus:
 
 logging:
   file:
-    name: spring-blog-dev.log
+    # 日志统一收进 logs/ 目录，避免污染项目根目录（Spring Boot 会自动创建该目录）
+    name: logs/spring-blog-dev.log

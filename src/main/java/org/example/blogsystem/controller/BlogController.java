@@ -110,9 +110,6 @@ public class BlogController {
      */
     private void checkAdmin() {
         String token = request.getHeader(Constants.TOKEN);
-        if (token == null || token.isEmpty()) {
-            token = request.getHeader(Constants.TOKEN_OLD);
-        }
         String userName = JwtUtils.getUserNameFromToken(token);
         if (!"admin".equals(userName)) {
             throw new BlogException("无管理员权限");
@@ -121,9 +118,6 @@ public class BlogController {
 
     private Integer getUserIdFromToken() {
         String token = request.getHeader(Constants.TOKEN);
-        if (token == null || token.isEmpty()) {
-            token = request.getHeader(Constants.TOKEN_OLD);
-        }
         Integer userId = JwtUtils.getUserIdFromToken(token);
         if (userId == null) {
             throw new BlogException("登录已失效，请重新登录");

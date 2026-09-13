@@ -1,9 +1,8 @@
-// 全局为所有 jQuery Ajax 请求添加 token
+// 全局为所有 jQuery Ajax 请求添加 token（请求头字段名与后端 Constants.TOKEN 保持一致）
 $(document).ajaxSend(function(event, xhr, options) {
-    const token = sessionStorage.getItem("user_token") || sessionStorage.getItem("userToken");
+    const token = sessionStorage.getItem("user_token");
     if (token) {
         xhr.setRequestHeader("user_token", token);
-        xhr.setRequestHeader("userToken", token);
     }
 });
 

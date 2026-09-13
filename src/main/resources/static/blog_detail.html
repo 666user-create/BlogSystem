@@ -76,8 +76,18 @@
                     if (result && result.code === 200 && result.data) {
                         $(".content .title").text(result.data.title || "");
                         $(".content .date").text(result.data.createTime || "");
-                        // 详情页展示完整内容
-                        $(".content .detail").text(result.data.content || "");
+                        // 详情页展示完整内容：内容是 Markdown，需要渲染成 HTML
+                        // （此前用 .text() 直接塞纯文本，导致 ## 标题、**加粗** 等语法原样显示）
+                        var raw = result.data.content || "";
+                        var html;
+                        if (typeof marked === "function") {
+                            html = marked(raw);              // editor.md 自带的 marked(0.3.x)：函数式调用
+                        } else if (window.marked && typeof window.marked.parse === "function") {
+                            html = window.marked.parse(raw); // 新版 marked：对象式调用
+                        } else {
+                            html = $("<div>").text(raw).html();  // 兜底：转义后按纯文本展示
+                        }
+                        $(".content .detail").html(html);
                         // 根据当前博客获取作者信息
                         loadAuthorInfo(blogId);
                     } else {

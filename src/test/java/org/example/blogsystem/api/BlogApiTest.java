@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.notNullValue;
 
 /**
@@ -26,7 +28,7 @@ class BlogApiTest extends BaseApiTest {
     // ==================== 列表 ====================
 
     @Test
-    @DisplayName("TC-LIST-01 列表返回已上架博客数组")
+    @DisplayName("TC-LIST-01 列表返回分页结构，当前页为博客数组")
     void getList_success() {
         // 先发一篇博客，确保列表里有数据
         addBlog(userAToken, "列表测试博客", "列表测试内容");
@@ -39,7 +41,73 @@ class BlogApiTest extends BaseApiTest {
         response.then()
                 .statusCode(200)
                 .body("code", equalTo(200))
-                .body("data", notNullValue());   // data 是博客数组
+                .body("data.list", notNullValue())      // 当前页数据
+                .body("data.total", notNullValue())     // 总条数
+                .body("data.pageNum", equalTo(1))
+                .body("data.pageSize", equalTo(10))     // 未指定时后端默认 10
+                .body("data.pages", notNullValue());
+    }
+
+    @Test
+    @DisplayName("TC-LIST-09 分页参数生效：pageSize=2 时当前页最多返回 2 条")
+    void getList_pageSizeApplied() {
+        addBlog(userAToken, "分页测试博客1", "内容");
+        addBlog(userAToken, "分页测试博客2", "内容");
+        addBlog(userAToken, "分页测试博客3", "内容");
+
+        given()
+                .header("user_token", userAToken)
+                .queryParam("pageNum", 1)
+                .queryParam("pageSize", 2)
+        .when()
+                .get("/blog/getList")
+        .then()
+                .statusCode(200)
+                .body("code", equalTo(200))
+                .body("data.pageNum", equalTo(1))
+                .body("data.pageSize", equalTo(2))
+                .body("data.list.size()", lessThanOrEqualTo(2));   // 本页不超过 pageSize 条
+    }
+
+    @Test
+    @DisplayName("TC-LIST-10 页码越界返回空列表，但 total 仍准确（不报错）")
+    void getList_pageOutOfRange() {
+        addBlog(userAToken, "越界页码测试博客", "内容");
+
+        Response response = given()
+                .header("user_token", userAToken)
+                .queryParam("pageNum", 9999)
+                .queryParam("pageSize", 10)
+        .when()
+                .get("/blog/getList");
+
+        response.then()
+                .statusCode(200)
+                .body("code", equalTo(200))
+                .body("data.list.size()", equalTo(0))       // 越界页没有数据
+                .body("data.total", greaterThan(0));        // 但总数依然正确
+    }
+
+    @Test
+    @DisplayName("TC-LIST-11 非法分页参数返回 400（pageNum=0 / pageSize=100）")
+    void getList_invalidPageParam() {
+        given()
+                .header("user_token", userAToken)
+                .queryParam("pageNum", 0)
+        .when()
+                .get("/blog/getList")
+        .then()
+                .statusCode(400)
+                .body("errMsg", equalTo("参数校验失败"));
+
+        given()
+                .header("user_token", userAToken)
+                .queryParam("pageSize", 100)
+        .when()
+                .get("/blog/getList")
+        .then()
+                .statusCode(400)
+                .body("errMsg", equalTo("参数校验失败"));
     }
 
     // ==================== 详情 ====================
@@ -246,7 +314,7 @@ class BlogApiTest extends BaseApiTest {
                 .statusCode(200)
                 .body("code", equalTo(200));
 
-        // 新增接口只返回 true 不返回 id，从列表取最新一条（getList 按 id 倒序，data[0] 最新）
+        // 新增接口只返回 true 不返回 id，从列表第一页取最新一条（按 id 倒序，list[0] 最新）
         return given()
                 .header("user_token", token)
         .when()
@@ -255,6 +323,6 @@ class BlogApiTest extends BaseApiTest {
                 .statusCode(200)
                 .extract()
                 .jsonPath()
-                .getInt("data[0].id");
+                .getInt("data.list[0].id");
     }
 }

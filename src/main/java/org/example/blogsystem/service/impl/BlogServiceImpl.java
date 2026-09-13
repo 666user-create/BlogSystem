@@ -1,10 +1,12 @@
 package org.example.blogsystem.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.example.blogsystem.common.pojo.dataObject.BlogInfo;
 import org.example.blogsystem.common.pojo.response.BlogInfoResponse;
+import org.example.blogsystem.common.pojo.response.PageResult;
 import org.example.blogsystem.common.exception.BlogException;
 import org.example.blogsystem.common.utils.MyBeanUtils;
 import org.example.blogsystem.mapper.BlogInfoMapper;
@@ -26,20 +28,29 @@ import java.util.stream.Collectors;
 public class BlogServiceImpl implements BlogService {
     @Autowired
     private BlogInfoMapper blogInfoMapper;
+
     /**
-     * 获取未删除的博客列表
+     * 分页获取未删除且已上架的博客列表（按 id 倒序）
      */
     @Override
-    public List<BlogInfoResponse> getList() {
-        QueryWrapper<BlogInfo> queryWrapper=new QueryWrapper<>();
+    public PageResult<BlogInfoResponse> getList(int pageNum, int pageSize) {
+        QueryWrapper<BlogInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.lambda()
-                .eq(BlogInfo::getDeleteFlag,0)
-                .eq(BlogInfo::getPublishedStatus,1)
+                .eq(BlogInfo::getDeleteFlag, 0)
+                .eq(BlogInfo::getPublishedStatus, 1)
                 .orderByDesc(BlogInfo::getId);
-        List<BlogInfo> blogInfos=blogInfoMapper.selectList(queryWrapper);
-        return blogInfos.stream()
+        Page<BlogInfo> page = blogInfoMapper.selectPage(new Page<>(pageNum, pageSize), queryWrapper);
+        return toPageResult(page);
+    }
+
+    /**
+     * 把 MyBatis-Plus 的分页对象转换为统一的响应体
+     */
+    private PageResult<BlogInfoResponse> toPageResult(Page<BlogInfo> page) {
+        List<BlogInfoResponse> list = page.getRecords().stream()
                 .map(MyBeanUtils::transBlogInfo)
                 .collect(Collectors.toList());
+        return PageResult.of(list, page.getTotal(), page.getCurrent(), page.getSize());
     }
 
     /**
@@ -167,16 +178,17 @@ public class BlogServiceImpl implements BlogService {
     /**
      * 管理员获取全部博客列表（未删除，含上架、下架）
      */
+    /**
+     * 管理员分页获取全部未删除的博客列表（含下架）
+     */
     @Override
-    public List<BlogInfoResponse> adminList() {
+    public PageResult<BlogInfoResponse> adminList(int pageNum, int pageSize) {
         QueryWrapper<BlogInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.lambda()
                 .eq(BlogInfo::getDeleteFlag, 0)
                 .orderByDesc(BlogInfo::getId);
-        List<BlogInfo> blogInfos = blogInfoMapper.selectList(queryWrapper);
-        return blogInfos.stream()
-                .map(MyBeanUtils::transBlogInfo)
-                .collect(Collectors.toList());
+        Page<BlogInfo> page = blogInfoMapper.selectPage(new Page<>(pageNum, pageSize), queryWrapper);
+        return toPageResult(page);
     }
 
     /**

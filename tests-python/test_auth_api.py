@@ -75,7 +75,7 @@ class TestAuth:
         assert resp.json()["code"] == 200
 
         list_body = requests.get(f"{base_url}/blog/getList", headers=auth["headers"], timeout=10).json()
-        mine = [item for item in list_body["data"] if item["title"] == "身份校验博客"]
+        mine = [item for item in list_body["data"]["list"] if item["title"] == "身份校验博客"]
         assert len(mine) > 0
         # userId 是 token 中解析出的用户，而不是别人
         assert mine[0]["userId"] is not None

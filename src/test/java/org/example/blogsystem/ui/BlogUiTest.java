@@ -36,6 +36,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -766,5 +767,87 @@ class BlogUiTest {
         // 正文区 = 博客作者
         assertTrue(driver.findElement(By.cssSelector(".content .author")).getText().contains(author),
                 "正文区应展示博客作者");
+    }
+
+    // ==================================================================
+    // 八、列表分页（BUG-06 修复后的回归用例）
+    // ==================================================================
+
+    /**
+     * 通过接口批量造博客数据。
+     * 在浏览器上下文里调 fetch（复用已登录的 sessionStorage token），
+     * 比走页面操作快得多，适合需要大量数据的场景。
+     */
+    private void publishBlogsViaApi(int count) {
+        String script =
+                "var done = arguments[0];"
+                        + "var token = sessionStorage.getItem('user_token');"
+                        + "var i = 0;"
+                        + "function next() {"
+                        + "  if (i >= " + count + ") { done('ok'); return; }"
+                        + "  fetch('/blog/add', {"
+                        + "    method: 'POST',"
+                        + "    headers: {'Content-Type': 'application/json', 'user_token': token},"
+                        + "    body: JSON.stringify({title: '分页造数' + i, content: '分页测试内容'})"
+                        + "  }).then(function(){ i++; next(); })"
+                        + "   .catch(function(e){ done('error:' + e); });"
+                        + "}"
+                        + "next();";
+        Object result = ((JavascriptExecutor) driver).executeAsyncScript(script);
+        assertEquals("ok", String.valueOf(result), "批量造数应全部成功");
+    }
+
+    @Test
+    @Order(31)
+    @DisplayName("UI-31 数据超过一页时显示翻页控件，首页禁用『上一页』")
+    void ui31_pagerShownWhenMultiPage() {
+        registerAndLogin("pager");
+        driver.get(baseUrl + "/blog_list.html");   // 先加载页面（同源），供 fetch 造数使用
+        publishBlogsViaApi(11);                    // 每页 10 条，造 11 篇确保出现第 2 页
+
+        driver.get(baseUrl + "/blog_list.html");
+        WebElement pager = new WebDriverWait(driver, WAIT)
+                .until(ExpectedConditions.visibilityOfElementLocated(By.id("pager")));
+        screenshot("UI-31-分页控件显示");
+
+        assertTrue(pager.isDisplayed(), "数据超过一页时应显示翻页控件");
+        int pages = Integer.parseInt(driver.findElement(By.id("pager-pages")).getText());
+        assertTrue(pages >= 2, "已有 11 篇以上数据，总页数应至少为 2，实际: " + pages);
+        assertEquals("1", driver.findElement(By.id("pager-current")).getText(), "初始应在第 1 页");
+        assertEquals(10, driver.findElements(By.cssSelector("#blog-list .blog")).size(),
+                "第 1 页应满 10 条");
+        assertFalse(driver.findElement(By.id("pager-prev")).isEnabled(), "第 1 页应禁用『上一页』");
+        assertTrue(driver.findElement(By.id("pager-next")).isEnabled(), "存在下一页时应可点击");
+    }
+
+    @Test
+    @Order(32)
+    @DisplayName("UI-32 点击下一页加载第 2 页，可返回第 1 页且数据一致")
+    void ui32_clickNextPage() {
+        registerAndLogin("pager2");
+        driver.get(baseUrl + "/blog_list.html");
+        publishBlogsViaApi(11);
+
+        driver.get(baseUrl + "/blog_list.html");
+        new WebDriverWait(driver, WAIT).until(ExpectedConditions.visibilityOfElementLocated(By.id("pager")));
+
+        String firstTitleOnPage1 = driver.findElement(By.cssSelector("#blog-list .blog .title")).getText();
+
+        // 翻到第 2 页
+        driver.findElement(By.id("pager-next")).click();
+        new WebDriverWait(driver, WAIT).until(d ->
+                "2".equals(d.findElement(By.id("pager-current")).getText()));
+        screenshot("UI-32-翻到第二页");
+
+        String firstTitleOnPage2 = driver.findElement(By.cssSelector("#blog-list .blog .title")).getText();
+        assertNotEquals(firstTitleOnPage1, firstTitleOnPage2, "第 2 页内容应与第 1 页不同");
+        assertTrue(driver.findElement(By.id("pager-prev")).isEnabled(), "第 2 页应可返回上一页");
+
+        // 再返回第 1 页，数据应与最初一致
+        driver.findElement(By.id("pager-prev")).click();
+        new WebDriverWait(driver, WAIT).until(d ->
+                "1".equals(d.findElement(By.id("pager-current")).getText()));
+        assertEquals(firstTitleOnPage1, driver.findElement(By.cssSelector("#blog-list .blog .title")).getText(),
+                "返回第 1 页后首条数据应与之前一致");
     }
 }

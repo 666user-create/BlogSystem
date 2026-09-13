@@ -214,3 +214,44 @@ html, body {
     font-weight: 700;
     color: #1a1a2e;
 }
+
+/* ===== 翻页控件（列表页与管理员页共用）===== */
+.pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin: 8px 0 12px;
+    font-size: 13px;
+    color: #8e99a4;
+}
+
+.pager .pager-info b {
+    color: #4a5a8a;
+    font-weight: 600;
+}
+
+.pager button {
+    padding: 6px 18px;
+    font-size: 13px;
+    color: #6b7db3;
+    background: #fff;
+    border: 1.5px solid #d5d9e8;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.pager button:hover:not(:disabled) {
+    color: #fff;
+    background: linear-gradient(135deg, #6b7db3, #7e8fc4);
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(107, 125, 179, 0.3);
+}
+
+.pager button:disabled {
+    color: #c0c4cc;
+    background: #f5f7fa;
+    border-color: #e4e7ed;
+    cursor: not-allowed;
+}

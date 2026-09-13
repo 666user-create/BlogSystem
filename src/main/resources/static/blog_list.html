@@ -37,35 +37,59 @@
             </div>
         </div>
         <div class="right">
-            <!-- <div class="blog">
-                <div class="title">我的第一篇博客</div>
-                <div class="date">2021-06-02</div>
-                <div class="desc">今天开始, 好好学习Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quas nesciunt, hic voluptatum, dolorem quisquam modi accusantium, commodi dolores architecto ratione vel exercitationem optio. Facere repellendus autem, obcaecati dolore sequi incidunt?</div>
-                <a class="detail" href="blog_detail.html">查看全文&gt;&gt;</a>
+            <!-- 博客卡片由 JS 渲染到 #blog-list；翻页控件放在同级，避免刷新列表时被一起清空 -->
+            <div id="blog-list"></div>
+            <div class="pager" id="pager" style="display:none">
+                <span class="pager-info">共 <b id="pager-total">0</b> 篇 · 第 <b id="pager-current">0</b>/<b id="pager-pages">0</b> 页</span>
+                <button type="button" id="pager-prev" onclick="changePage(-1)">上一页</button>
+                <button type="button" id="pager-next" onclick="changePage(1)">下一页</button>
             </div>
-            <div class="blog">
-                <div class="title">我的第一篇博客</div>
-                <div class="date">2021-06-02</div>
-                <div class="desc">今天开始, 好好学习Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quas nesciunt, hic voluptatum, dolorem quisquam modi accusantium, commodi dolores architecto ratione vel exercitationem optio. Facere repellendus autem, obcaecati dolore sequi incidunt?</div>
-                <a class="detail" href="blog_detail.html">查看全文&gt;&gt;</a>
-            </div> -->
         </div>
     </div>
     <script src="js/jquery.min.js"></script>
     <script src="js/common.js"></script>
     <script>
-        getBlogList();
+        // ===== 分页状态 =====
+        var PAGE_SIZE = 10;    // 每页条数（后端限制最大 50）
+        var currentPage = 1;   // 当前页码
+        var totalPages = 0;    // 总页数（以后端返回为准）
+
+        getBlogList(1);
         getUserInfo();
-        function getBlogList() {
-            // 加载博客列表
+
+        /**
+         * 分页加载博客列表
+         * @param pageNum 页码（从 1 开始）
+         */
+        function getBlogList(pageNum) {
             $.ajax({
                 type: "get",
                 url: "/blog/getList",
+                data: { pageNum: pageNum, pageSize: PAGE_SIZE },
                 success: function (result) {
-                    if (result && result.code === 200 && Array.isArray(result.data) && result.data.length > 0) {
+                    // 统一错误处理：拿不到数据时给出提示，并把翻页控件复位
+                    if (!result || result.code !== 200 || !result.data) {
+                        $("#blog-list").html("<p>" + ((result && result.errMsg) || "加载博客列表失败") + "</p>");
+                        renderPager(0, 0, 0);
+                        return;
+                    }
+
+                    var pageData = result.data;
+                    var list = pageData.list || [];
+                    currentPage = pageData.pageNum || 1;
+                    totalPages = pageData.pages || 0;
+
+                    if (list.length === 0) {
+                        // 区分两种情况：本来就没有博客 / 页码越界（比如手动改了 URL 或数据被删）
+                        if (pageData.total > 0 && currentPage > 1) {
+                            $("#blog-list").html("<p>这一页没有内容了，请返回上一页</p>");
+                        } else {
+                            $("#blog-list").html("<p>暂无博客内容</p>");
+                        }
+                    } else {
                         var finalHtml = "";
-                        for (var i = 0; i < result.data.length; i++) {
-                            var blogInfo = result.data[i];
+                        for (var i = 0; i < list.length; i++) {
+                            var blogInfo = list[i];
                             finalHtml += '<div class="blog">';
                             finalHtml += '<div class="title">' + (blogInfo.title || '') + '</div>';
                             finalHtml += '<div class="date">' + (blogInfo.createTime || '') + '</div>';
@@ -74,17 +98,43 @@
                             finalHtml += '<a class="detail" href="blog_detail.html?blogId=' + blogInfo.id + '">查看全文</a>';
                             finalHtml += '</div>';
                         }
-                        $(".container .right").html(finalHtml);
-                    } else if (result && result.code === 200) {
-                        $(".container .right").html("<p>暂无博客内容</p>");
-                    } else {
-                        $(".container .right").html("<p>" + (result && result.errMsg ? result.errMsg : "加载博客列表失败") + "</p>");
+                        $("#blog-list").html(finalHtml);
                     }
+                    renderPager(pageData.total, currentPage, totalPages);
                 },
                 error: function () {
-                    $(".container .right").html("<p>加载博客列表失败，请稍后重试</p>");
+                    $("#blog-list").html("<p>加载博客列表失败，请稍后重试</p>");
+                    renderPager(0, 0, 0);
                 }
             });
+        }
+
+        /**
+         * 渲染翻页控件
+         * @param total 总条数
+         * @param pageNum 当前页码
+         * @param pages 总页数
+         */
+        function renderPager(total, pageNum, pages) {
+            var $pager = $("#pager");
+            if (!$pager.length) return;
+
+            $pager.find("#pager-total").text(total || 0);
+            $pager.find("#pager-current").text(pages > 0 ? pageNum : 0);
+            $pager.find("#pager-pages").text(pages || 0);
+            // 首页禁用"上一页"，末页禁用"下一页"；无数据时两个都禁用
+            $pager.find("#pager-prev").prop("disabled", !(pages > 0 && pageNum > 1));
+            $pager.find("#pager-next").prop("disabled", !(pages > 0 && pageNum < pages));
+            // 只有一页（或没有数据）时不显示翻页控件
+            $pager.toggle(pages > 1);
+        }
+
+        /** 翻页：delta 为 -1（上一页）或 1（下一页） */
+        function changePage(delta) {
+            var target = currentPage + delta;
+            if (target < 1) return;
+            if (totalPages > 0 && target > totalPages) return;
+            getBlogList(target);
         }
         // 左侧卡片展示当前登录用户信息
         function getUserInfo() {

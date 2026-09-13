@@ -33,7 +33,7 @@
                     <span>分类</span>
                 </div>
                 <div class="row">
-                    <span id="author-blog-count">0</span>
+                    <span id="user-blog-count">0</span>
                     <span>1</span>
                 </div>
             </div>
@@ -98,8 +98,9 @@
                             $(".content .operating").show();
                         }
 
-                        // 根据当前博客获取作者信息
+                        // 正文区展示作者；左侧卡片展示当前登录用户
                         loadAuthorInfo(blogId);
+                        loadLoginUserInfo();
                     } else {
                         alert(result && result.errMsg ? result.errMsg : "未找到博客详情");
                     }
@@ -110,7 +111,7 @@
             });
         }
 
-        // 加载作者信息并展示在左侧卡片
+        // 正文区展示博客作者（读者视角：这篇文章是谁写的）
         function loadAuthorInfo(blogId) {
             $.ajax({
                 type: "get",
@@ -118,17 +119,31 @@
                 data: { blogId: blogId },
                 success: function (result) {
                     if (result && result.code === 200 && result.data) {
+                        $(".content .author").text("作者：" + (result.data.userName || "未知作者"));
+                    }
+                }
+            });
+        }
+
+        // 左侧卡片展示"当前登录用户"的信息（与列表页保持一致；作者信息已在正文区展示，不重复）
+        function loadLoginUserInfo() {
+            var userId = sessionStorage.getItem("loginUserId");
+            if (!userId) return;
+            $.ajax({
+                type: "get",
+                url: "/user/getUserInfo",
+                data: { userId: userId },
+                success: function (result) {
+                    if (result && result.code === 200 && result.data) {
                         var userInfo = result.data;
-                        // 左侧卡片 + 正文区都展示作者，读者一眼能看到"谁写的"
                         $(".container .left .card h3").text(userInfo.userName || "");
-                        $(".content .author").text("作者：" + (userInfo.userName || "未知作者"));
                         if (userInfo.githubUrl) {
                             $(".container .left .card a").attr("href", userInfo.githubUrl).text("GitHub").attr("target", "_blank");
                         } else {
                             $(".container .left .card a").attr("href", "#").text("📝 完善个人主页").css("color", "#bbb");
                         }
                         if (typeof userInfo.blogCount === "number") {
-                            $("#author-blog-count").text(userInfo.blogCount);
+                            $("#user-blog-count").text(userInfo.blogCount);
                         }
                     }
                 }

@@ -497,7 +497,7 @@ class BlogUiTest {
 
     @Test
     @Order(19)
-    @DisplayName("UI-19 编辑博客并保存成功")
+    @DisplayName("UI-19 编辑页正确回显原博客，并保存成功")
     void ui19_updateBlog() {
         String oldTitle = "UI编辑前" + (System.currentTimeMillis() % 100000);
         String newTitle = "UI编辑后" + (System.currentTimeMillis() % 100000);
@@ -510,8 +510,21 @@ class BlogUiTest {
         new WebDriverWait(driver, WAIT).until(ExpectedConditions.urlContains("blog_update.html"));
         waitEditorReady();
 
-        // 修改标题与内容后提交
+        // ===== 关键断言（BUG-14 回归点）=====
+        // 编辑页必须正确回显原博客内容：editor.md 异步初始化，
+        // 若回显时机早于编辑器就绪，编辑框会显示默认占位文本，提交后原内容被覆盖。
         WebElement titleInput = driver.findElement(By.id("title"));
+        new WebDriverWait(driver, WAIT).until(d ->
+                !((WebElement) d.findElement(By.id("title"))).getAttribute("value").isEmpty());
+        assertEquals(oldTitle, titleInput.getAttribute("value"), "编辑页应回显原博客标题");
+
+        String echoedContent = (String) ((JavascriptExecutor) driver)
+                .executeScript("return window.editor.getMarkdown()");
+        assertTrue(echoedContent != null && echoedContent.contains("编辑前的内容"),
+                "编辑页应回显原博客内容，实际回显: " + echoedContent);
+        screenshot("UI-19a-编辑页回显原内容");
+
+        // 修改标题与内容后提交
         titleInput.clear();
         titleInput.sendKeys(newTitle);
         setEditorContent("编辑后的内容");
@@ -525,7 +538,7 @@ class BlogUiTest {
                 .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".content .title")));
         assertEquals(newTitle, detailTitle.getText(), "详情页应显示更新后的标题");
         assertTrue(driver.findElement(By.cssSelector(".content .detail")).getText().contains("编辑后的内容"));
-        screenshot("UI-19-编辑保存成功");
+        screenshot("UI-19b-编辑保存成功");
 
         // 清理：把这篇文章删掉，避免影响后续用例的"第一篇博客"断言
         deleteCurrentBlog(blogId);

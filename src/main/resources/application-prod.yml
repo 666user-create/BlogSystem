@@ -9,4 +9,5 @@ mybatis-plus:
 
 logging:
   file:
-    name: spring-blog-prod.log
+    # 日志统一收进 logs/ 目录
+    name: logs/spring-blog-prod.log

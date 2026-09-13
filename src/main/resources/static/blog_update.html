@@ -42,13 +42,19 @@
 
         // 初始化编辑器
         $(function () {
-            var editor = editormd("editor", {
+            editormd("editor", {
                 width  : "100%",
                 height : "550px",
-                path: "blog-editormd/lib/"
+                path: "blog-editormd/lib/",
+                // 关键：必须等编辑器（含底层 CodeMirror）完全加载后再回显原博客内容。
+                // editor.md 的初始化是异步的，若在 window.editor 就绪前调用 setMarkdown，
+                // 内容会被写进隐藏的 textarea，编辑框仍显示默认占位文本，
+                // 用户一旦提交就会把原内容覆盖掉。
+                onload: function () {
+                    window.editor = this;
+                    getBlogInfo();
+                }
             });
-            // 挂到全局，提交时可以取内容
-            window.editor = editor;
         });
         
         // 提交更新
@@ -127,8 +133,9 @@
             });
         }
 
-        // 页面加载后拉取当前博客信息
-        getBlogInfo();
+        // 注意：不在此处调用 getBlogInfo()。
+        // 编辑器初始化是异步的，必须等 editor.md 的 onload 触发后再拉取并回显博客内容，
+        // 否则回显会失败（详见上方 onload 中的说明）。
     </script>
 </body>
 

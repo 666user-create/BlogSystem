@@ -40,13 +40,16 @@
     <script type="text/javascript">
 
         $(function () {
-            var editor = editormd("editor", {
+            editormd("editor", {
                 width: "100%",
                 height: "550px",
-                path: "blog-editormd/lib/"
+                path: "blog-editormd/lib/",
+                // 编辑器完全加载后再挂到全局，保证提交时 getMarkdown() 可用
+                // （editor.md 异步初始化，过早赋值会导致取内容为空或报错）
+                onload: function () {
+                    window.editor = this;
+                }
             });
-            // 将 editor 实例挂到全局，方便提交时取内容
-            window.editor = editor;
         });
 
         function submit() {

@@ -2,11 +2,11 @@
 
 一个基于 Spring Boot 的个人博客系统，支持用户注册登录、博客的发布/编辑/删除（逻辑删除）、管理员上下架管理等核心功能，前端为原生 HTML + jQuery + editor.md（Markdown 编辑器）。
 
-本项目同时作为个人**测试开发（测开）练习项目**，包含 JUnit5 单元测试、接口测试用例、测试文档等测试资产。
+本项目同时作为个人**测试开发（测开）练习项目**，包含 Selenium UI 自动化、pytest 接口自动化、抓包分析、JMeter 性能测试与全套测试文档。
 
 > **微服务学习分支**：`blog-cloud/` 是基于本工程拆出来的 **Spring Cloud Alibaba 五组件学习项目**
-> （Nacos / Gateway / Sentinel / RocketMQ / Seata），实现与使用说明见 [docs/blog-cloud-实现文档.md](docs/blog-cloud-实现文档.md)，
-> 学习路线见 [docs/SpringCloudAlibaba学习计划.md](docs/SpringCloudAlibaba学习计划.md)。原单体工程保持不动。
+> （Nacos / Gateway / Sentinel / RocketMQ / Seata）。零基础入门教学见
+> [docs/SpringCloud入门教学.md](docs/SpringCloud入门教学.md)（概念讲解 + 代码片段 + 启动步骤 + 验收清单）。原单体工程保持不动。
 
 ## 技术栈
 
@@ -88,7 +88,7 @@ src/main/java/org/example/blogsystem
 ├── service         # 业务层
 └── BlogSystemApplication.java
 
-src/test/java       # JUnit5 单元测试
+src/test/java       # Selenium UI 自动化测试
 src/main/resources  # 配置文件 + 前端静态页面
 ```
 
@@ -99,29 +99,27 @@ src/main/resources  # 配置文件 + 前端静态页面
 | 文档 | 内容 |
 |---|---|
 | `docs/01-需求分析与测试范围说明书.md` | 需求基线、业务规则、接口清单 |
-| `docs/02-测试计划.md` | 测试策略（JUnit5 + Selenium + RestAssured + pytest + JMeter）、环境、进度、准入准出 |
+| `docs/02-测试计划.md` | 测试策略（Selenium + pytest + Postman + JMeter）、环境、进度、准入准出 |
 | `docs/03-测试用例设计.md` | 90 条测试用例（等价类/边界值/判定表/场景法/错误推测） |
 | `docs/04-测试执行记录.md` | 执行统计、回归记录、自动化执行明细 |
 | `docs/05-测试总结报告.md` | 缺陷分析、质量评估、性能结论 |
 | `docs/06-UI自动化测试说明.md` | Selenium 框架设计、23 条 UI 用例、截图证据 |
-| `docs/07-接口测试与抓包分析说明.md` | RestAssured + pytest 双栈、抓包明文分析 |
+| `docs/07-接口测试与抓包分析说明.md` | pytest 接口自动化、抓包代理与明文分析 |
 | `docs/08-性能测试报告.md` | JMeter 压测结果（吞吐量 88 请求/秒、平均 5.8ms） |
 | `docs/09-简历项目描述.md` | 可直接使用的简历条目 + 面试追问准备 |
 | `docs/缺陷清单.md` | 12 条缺陷（BUG-01 ~ BUG-12），含严重级别与修复状态 |
 
-自动化测试（合计 128 条，全部通过）：
+自动化测试（合计 63 条，全部通过）：
 
 ```bash
-mvn test                    # 单元测试 34 + 接口测试 30 + UI 自动化 23 + 冒烟 1
-cd tests-python && python -m pytest    # Python 接口测试 40（含抓包与安全检查）
+mvn test -Dtest=BlogUiTest              # Selenium UI 自动化 23 条
+cd tests-python && python -m pytest     # 接口自动化 40 条（含抓包与安全检查）
 ```
 
 | 层级 | 框架 | 覆盖 |
 |---|---|---|
-| 单元测试 | JUnit5 + Mockito | 工具类（JWT/密码）+ 服务层（`UserServiceImpl`、`BlogServiceImpl` 全分支）——34 条 |
-| 接口测试（Java） | RestAssured + JUnit5 | 用户/博客/管理端/鉴权 30 条（`@SpringBootTest` 随机端口 + 独立 test profile） |
-| 接口测试（Python） | pytest + requests + Allure | 40 条（含抓包明文分析、SQL 注入检查），报告见 `reports/allure-python/` |
-| UI 自动化 | Selenium + JUnit5 | 23 条核心流程（Headless Chrome + 显式等待 + 截图断言），证据见 `docs/test-evidence/ui/` |
+| UI 自动化 | Selenium + Java | 23 条核心流程（Headless Chrome + 显式等待 + 截图断言），证据见 `docs/test-evidence/ui/` |
+| 接口自动化 | Python + pytest + requests + Allure | 40 条（含抓包明文分析、SQL 注入检查），报告见 `reports/allure-python/` |
 
 测试证据与报告：
 

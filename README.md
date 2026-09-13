@@ -103,29 +103,29 @@ src/main/resources  # 配置文件 + 前端静态页面
 | `docs/03-测试用例设计.md` | 93 条测试用例（等价类/边界值/判定表/场景法/错误推测） |
 | `docs/04-测试执行记录.md` | 执行统计、回归记录、自动化执行明细 |
 | `docs/05-测试总结报告.md` | 缺陷分析、质量评估、性能结论 |
-| `docs/06-UI自动化测试说明.md` | Selenium 框架设计、32 条 UI 用例、截图证据 |
+| `docs/06-UI自动化测试说明.md` | Selenium 框架设计、33 条 UI 用例、截图证据 |
 | `docs/07-接口测试与抓包分析说明.md` | pytest 接口自动化、抓包代理与明文分析 |
 | `docs/08-性能测试报告.md` | JMeter 压测结果（吞吐量 90.1 请求/秒、平均 5.9ms） |
 | `docs/09-简历项目描述.md` | 可直接使用的简历条目 + 面试追问准备 |
-| `docs/缺陷清单.md` | 17 条缺陷（BUG-01 ~ BUG-17），含严重级别与修复状态 |
+| `docs/缺陷清单.md` | 18 条缺陷（BUG-01 ~ BUG-18），含严重级别与修复状态 |
 
-自动化测试（合计 77 条，全部通过）：
+自动化测试（合计 78 条，全部通过）：
 
 ```bash
-mvn test -Dtest=BlogUiTest              # Selenium UI 自动化 32 条
+mvn test -Dtest=BlogUiTest              # Selenium UI 自动化 33 条
 cd tests-python && python -m pytest     # 接口自动化 45 条（含抓包与安全检查）
 ```
 
 | 层级 | 框架 | 覆盖 |
 |---|---|---|
-| UI 自动化 | Selenium + Java | 32 条核心流程（Headless Chrome + 显式等待 + 截图断言），证据见 `docs/test-evidence/ui/` |
+| UI 自动化 | Selenium + Java | 33 条核心流程（Headless Chrome + 显式等待 + 截图断言 + 样式断言），证据见 `docs/test-evidence/ui/` |
 | 接口自动化 | Python + pytest + requests + Allure | 45 条（含分页、抓包明文分析、SQL 注入检查），报告见 `reports/allure-python/` |
 
 测试证据与报告：
 
 | 资产 | 位置 |
 |---|---|
-| UI 截图证据（33 张） | `docs/test-evidence/ui/` |
+| UI 截图证据（34 张） | `docs/test-evidence/ui/` |
 | 抓包证据（登录请求明文分析） | `docs/test-evidence/capture/login-capture.json` |
 | Allure HTML 报告 | `reports/allure-python/index.html` |
 | JMeter 压测计划 / 结果 / HTML 报告 | `perf/BlogSystem-性能测试计划.jmx`、`perf/result.jtl`、`perf/report/index.html` |

@@ -31,3 +31,14 @@ application-local.properties
 allure-results/
 reports/
 perf/report/
+
+# ===== 数据库备份（含真实数据，不入库）=====
+backup/
+
+# ===== 微服务运行时产物（Nacos 启动时会往当前工作目录写这些，已统一收进 blog-cloud/）=====
+blog-cloud/logs/
+blog-cloud/work/
+blog-cloud/derby.log
+
+# ===== 性能测试运行日志 =====
+perf/jmeter.log

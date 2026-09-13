@@ -25,11 +25,13 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -79,7 +81,14 @@ class BlogUiTest {
     }
 
     @AfterAll
-    static void quitBrowser() {
+    static void quitBrowser() throws IOException {
+        // 弹框文本证据落盘：原生 alert/confirm 无法截图，用文本证据补齐
+        Files.write(Paths.get(SHOT_DIR, "alert-evidence.md"),
+                ("# UI 弹框提示证据\n\n"
+                        + "> 浏览器原生 alert/confirm 不属于页面 DOM，Selenium 截图无法捕获弹窗内容。\n"
+                        + "> 截图中右上角的黄色浮层为测试脚本在关闭弹窗后按实际文本绘制的提示，\n"
+                        + "> 完整文本证据如下（按用例执行顺序）：\n\n"
+                        + String.join("\n", alertEvidence) + "\n").getBytes(StandardCharsets.UTF_8));
         if (driver != null) {
             driver.quit();
         }
@@ -109,12 +118,39 @@ class BlogUiTest {
         }
     }
 
-    /** 等待 alert 弹出、取文本并关闭（前端提示均为原生 alert） */
-    private String acceptAlert() {
+    /** 弹框文本证据（用例执行过程中累积，全部执行完落盘为文件） */
+    private static final List<String> alertEvidence = new ArrayList<>();
+
+    /**
+     * 等待 alert 弹出、取文本并关闭。
+     * <p>
+     * 注意：浏览器原生 alert 不属于页面 DOM，Selenium 截图【无法】捕获弹窗内容，
+     * 因此这里在关闭弹窗后把实际提示文本绘制成页面浮层，使截图能体现"究竟提示了什么"；
+     * 同时把文本累积到 alertEvidence，全部用例结束后落盘为文本证据文件。
+     *
+     * @param scene 场景描述（用于证据文件可读性）
+     */
+    private String acceptAlert(String scene) {
         Alert alert = new WebDriverWait(driver, Duration.ofSeconds(10))
                 .until(ExpectedConditions.alertIsPresent());
         String text = alert.getText();
         alert.accept();
+
+        alertEvidence.add("- " + scene + " → 弹框提示：" + text);
+
+        // 把提示内容绘制到页面上，供截图留证（页面跳转后浮层消失，故同时保留文本证据）
+        try {
+            ((JavascriptExecutor) driver).executeScript(
+                    "var d=document.createElement('div');"
+                            + "d.style.cssText='position:fixed;top:16px;right:16px;z-index:99999;"
+                            + "background:#fff8e1;border:2px solid #ffb300;border-radius:6px;"
+                            + "padding:10px 16px;font-size:15px;font-family:sans-serif;color:#333;"
+                            + "box-shadow:0 2px 10px rgba(0,0,0,.25)';"
+                            + "d.textContent='弹框提示：' + arguments[0];"
+                            + "document.body.appendChild(d);", text);
+        } catch (Exception ignored) {
+            // 页面已跳转时插入可能失败，不影响断言
+        }
         return text;
     }
 
@@ -126,7 +162,7 @@ class BlogUiTest {
         driver.findElement(By.id("password")).sendKeys("123456");
         driver.findElement(By.id("confirmPassword")).sendKeys("123456");
         driver.findElement(By.id("submit")).click();
-        acceptAlert();
+        acceptAlert("注册提交（成功）");
         return userName;
     }
 
@@ -152,7 +188,7 @@ class BlogUiTest {
         driver.findElement(By.id("username")).sendKeys(userName);
         driver.findElement(By.id("password")).sendKeys(password);
         driver.findElement(By.id("submit")).click();
-        return acceptAlert();
+        return acceptAlert("登录提交（失败场景）");
     }
 
     /** 等待 editor.md 编辑器初始化完成（editor.md 异步挂载底层 CodeMirror，必须等 cm 就绪） */
@@ -174,7 +210,7 @@ class BlogUiTest {
         driver.findElement(By.id("title")).sendKeys(title);
         setEditorContent(content);
         driver.findElement(By.id("submit")).click();
-        acceptAlert();
+        acceptAlert("发表博客");
         new WebDriverWait(driver, WAIT).until(ExpectedConditions.urlContains("blog_list.html"));
     }
 
@@ -221,7 +257,7 @@ class BlogUiTest {
         driver.get(baseUrl + "/blog_login.html");
         driver.findElement(By.id("submit")).click();
 
-        String alert = acceptAlert();
+        String alert = acceptAlert("UI-02 空输入登录");
         assertEquals("用户名和密码不能为空", alert);
         screenshot("UI-02-空输入登录提示");
     }
@@ -298,7 +334,7 @@ class BlogUiTest {
         driver.findElement(By.id("confirmPassword")).sendKeys("123456");
         driver.findElement(By.id("submit")).click();
 
-        assertEquals("用户名长度必须在4到20位之间", acceptAlert());
+        assertEquals("用户名长度必须在4到20位之间", acceptAlert("UI-08 用户名过短"));
         screenshot("UI-08-用户名过短提示");
     }
 
@@ -312,7 +348,7 @@ class BlogUiTest {
         driver.findElement(By.id("confirmPassword")).sendKeys("123");
         driver.findElement(By.id("submit")).click();
 
-        assertEquals("密码长度必须在6到20位之间", acceptAlert());
+        assertEquals("密码长度必须在6到20位之间", acceptAlert("UI-09 密码过短"));
         screenshot("UI-09-密码过短提示");
     }
 
@@ -326,7 +362,7 @@ class BlogUiTest {
         driver.findElement(By.id("confirmPassword")).sendKeys("654321");
         driver.findElement(By.id("submit")).click();
 
-        assertEquals("两次输入的密码不一致", acceptAlert());
+        assertEquals("两次输入的密码不一致", acceptAlert("UI-10 密码不一致"));
         screenshot("UI-10-密码不一致提示");
     }
 
@@ -342,7 +378,7 @@ class BlogUiTest {
         driver.findElement(By.id("confirmPassword")).sendKeys("123456");
         driver.findElement(By.id("submit")).click();
 
-        assertEquals("注册成功，请登录", acceptAlert());
+        assertEquals("注册成功，请登录", acceptAlert("UI-11 注册成功"));
         new WebDriverWait(driver, WAIT).until(ExpectedConditions.urlContains("blog_login.html"));
         screenshot("UI-11-注册成功跳转");
 
@@ -363,7 +399,7 @@ class BlogUiTest {
         driver.findElement(By.id("confirmPassword")).sendKeys("123456");
         driver.findElement(By.id("submit")).click();
 
-        assertEquals("用户名已被注册", acceptAlert());
+        assertEquals("用户名已被注册", acceptAlert("UI-12 重复用户名"));
         screenshot("UI-12-重复用户名提示");
     }
 
@@ -407,7 +443,7 @@ class BlogUiTest {
         waitEditorReady();
         driver.findElement(By.id("submit")).click();
 
-        assertEquals("标题不能为空", acceptAlert());
+        assertEquals("标题不能为空", acceptAlert("UI-15 标题为空"));
         screenshot("UI-15-标题为空提示");
     }
 
@@ -481,7 +517,7 @@ class BlogUiTest {
         setEditorContent("编辑后的内容");
         driver.findElement(By.id("submit")).click();
 
-        assertEquals("更新成功", acceptAlert());
+        assertEquals("更新成功", acceptAlert("UI-19 编辑保存"));
         new WebDriverWait(driver, WAIT).until(ExpectedConditions.urlContains("blog_detail.html"));
 
         // 断言：详情页显示新标题、新内容
@@ -516,7 +552,7 @@ class BlogUiTest {
         driver.get(baseUrl + "/blog_detail.html?blogId=" + blogId);
         new WebDriverWait(driver, WAIT).until(ExpectedConditions.visibilityOfElementLocated(
                 By.xpath("//div[@class='operating']//button[text()='删除']"))).click();
-        acceptAlert();   // confirm("确定删除这篇博客吗？")
+        acceptAlert("删除确认");
         new WebDriverWait(driver, WAIT).until(ExpectedConditions.urlContains("blog_list.html"));
     }
 

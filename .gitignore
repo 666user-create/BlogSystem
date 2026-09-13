@@ -45,3 +45,8 @@ perf/jmeter.log
 
 # ===== 应用运行日志（单体工程，已统一收进 logs/）=====
 logs/
+
+# ===== Python 缓存 =====
+__pycache__/
+*.py[cod]
+.pytest_cache/

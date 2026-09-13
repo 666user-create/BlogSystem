@@ -850,4 +850,38 @@ class BlogUiTest {
         assertEquals(firstTitleOnPage1, driver.findElement(By.cssSelector("#blog-list .blog .title")).getText(),
                 "返回第 1 页后首条数据应与之前一致");
     }
+
+    @Test
+    @Order(33)
+    @DisplayName("UI-33 列表页样式表已生效，卡片样式未丢失")
+    void ui33_listPageStylesApplied() {
+        registerAndLogin("style");
+        driver.get(baseUrl + "/blog_list.html");
+        // 等数据渲染完成（列表里必然有已发布的博客）
+        new WebDriverWait(driver, WAIT).until(ExpectedConditions.presenceOfElementLocated(
+                By.cssSelector("#blog-list .blog")));
+        screenshot("UI-33-卡片样式生效");
+
+        // 1. list.css 必须真正加载且规则可读（不是 404、不是空文件）
+        Object cssLoaded = ((JavascriptExecutor) driver).executeScript(
+                "return Array.from(document.styleSheets).some(function (s) {"
+                        + "  return s.href && s.href.indexOf('list.css') > -1 && s.cssRules && s.cssRules.length > 0;"
+                        + "});");
+        assertEquals(Boolean.TRUE, cssLoaded, "list.css 应已加载且包含样式规则");
+
+        // 2. 卡片必须真的套上了样式
+        //    背景设计：只断言元素存在，一旦 CSS 没生效（如浏览器缓存了旧样式表）页面会退化成
+        //    "一堆裸文字"，而元素数量断言依然通过——所以这里直接校验计算后的样式。
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        Object cardBg = js.executeScript(
+                "return getComputedStyle(document.querySelector('#blog-list .blog')).backgroundColor;");
+        Object cardPadding = js.executeScript(
+                "return getComputedStyle(document.querySelector('#blog-list .blog')).paddingTop;");
+        Object cardRadius = js.executeScript(
+                "return getComputedStyle(document.querySelector('#blog-list .blog')).borderTopLeftRadius;");
+
+        assertNotEquals("rgba(0, 0, 0, 0)", cardBg, "卡片背景不应为透明（说明卡片样式已生效）");
+        assertNotEquals("0px", cardPadding, "卡片应有内边距（说明卡片样式已生效）");
+        assertNotEquals("0px", cardRadius, "卡片应有圆角（说明卡片样式已生效）");
+    }
 }

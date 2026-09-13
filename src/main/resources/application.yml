@@ -13,6 +13,15 @@ spring:
   profiles:
     active: "@profile.name@"
 
+  # 静态资源（前端 HTML/CSS/JS）每次请求都向服务器校验是否变更：
+  # 未变更返回 304（开销极小），已变更立即拿到新文件。
+  # 这样可避免"新 HTML + 浏览器缓存的旧 CSS"导致的样式错乱（曾踩坑：卡片样式整体失效）。
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          no-cache: true
+
   datasource:
     url: jdbc:mysql://127.0.0.1:3306/java_blog_spring?characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
     username: root

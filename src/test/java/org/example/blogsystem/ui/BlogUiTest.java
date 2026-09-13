@@ -741,4 +741,30 @@ class BlogUiTest {
         assertFalse(driver.findElement(By.cssSelector(".content .operating")).isDisplayed(),
                 "非作者（当前登录：" + otherUser + "）不应看到编辑/删除按钮");
     }
+
+    @Test
+    @Order(30)
+    @DisplayName("UI-30 详情页左侧卡片展示当前登录用户，正文展示博客作者")
+    void ui30_sideCardShowsLoginUser() {
+        // 用户 A 发表博客
+        String author = registerAndLogin("sideA");
+        publishBlog("左侧卡片归属测试", "内容");
+        String blogId = openFirstBlogDetail();
+
+        // 换成用户 B 打开 A 的博客
+        String loginUser = registerAndLogin("sideB");
+        driver.get(baseUrl + "/blog_detail.html?blogId=" + blogId);
+        new WebDriverWait(driver, WAIT)
+                .until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".content .author")));
+        new WebDriverWait(driver, WAIT).until(d ->
+                !d.findElement(By.cssSelector(".container .left .card h3")).getText().isEmpty());
+        screenshot("UI-30-左侧卡片显示当前用户");
+
+        // 左侧卡片 = 当前登录用户（与列表页一致）
+        assertEquals(loginUser, driver.findElement(By.cssSelector(".container .left .card h3")).getText(),
+                "详情页左侧卡片应展示当前登录用户");
+        // 正文区 = 博客作者
+        assertTrue(driver.findElement(By.cssSelector(".content .author")).getText().contains(author),
+                "正文区应展示博客作者");
+    }
 }

@@ -64,7 +64,6 @@
                         sessionStorage.clear();
                         sessionStorage.setItem("loginUserId", result.data.userId);
                         sessionStorage.setItem("user_token", result.data.token);
-                        sessionStorage.setItem("userToken", result.data.token);
                         sessionStorage.setItem("userName", result.data.userName || "");
                         location.href = "blog_list.html";
                     } else {

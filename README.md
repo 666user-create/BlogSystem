@@ -98,8 +98,8 @@ tests/              # 测试资产统一入口（跨语言的都收在这里）
 └── reports/        #   [生成物] JMeter 结果/报告、Allure 结果/报告 —— 已忽略，不入库
 
 docs/               # 测试文档（01~08 + 缺陷清单），只放"人读的文档"
-scripts/            # 可复现脚本：清理测试数据、binlog 数据恢复
-blog-cloud/         # Spring Cloud 微服务模块（独立工程 + 自己的 docs/）
+blog-cloud/         # Spring Cloud 微服务模块（独立工程，文档在 blog-cloud/docs/）
+backup/scripts/     # 辅助脚本：测试数据清理、binlog 数据恢复（backup/ 下的数据快照不入库）
 ```
 
 ## 测试

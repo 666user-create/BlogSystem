@@ -88,8 +88,18 @@ src/main/java/org/example/blogsystem
 ├── service         # 业务层
 └── BlogSystemApplication.java
 
-src/test/java       # Selenium UI 自动化测试
+src/test/java       # Java 测试（JUnit5 单元测试 + Selenium UI 自动化，遵循 Maven 约定）
 src/main/resources  # 配置文件 + 前端静态页面
+
+tests/              # 测试资产统一入口（跨语言的都收在这里）
+├── api-python/     #   接口自动化：pytest + requests + Allure（原 tests-python/）
+├── perf/           #   性能测试：JMeter 计划 .jmx（原 perf/）
+├── evidence/       #   [生成物] UI 截图、弹框文本、抓包 json —— 已忽略，不入库
+└── reports/        #   [生成物] JMeter 结果/报告、Allure 结果/报告 —— 已忽略，不入库
+
+docs/               # 测试文档（01~08 + 缺陷清单），只放"人读的文档"
+scripts/            # 可复现脚本：清理测试数据、binlog 数据恢复
+blog-cloud/         # Spring Cloud 微服务模块（独立工程 + 自己的 docs/）
 ```
 
 ## 测试
@@ -113,7 +123,7 @@ src/main/resources  # 配置文件 + 前端静态页面
 
 ```bash
 mvn test -Dtest=BlogUiTest              # Selenium UI 自动化 33 条
-cd tests-python && python -m pytest     # 接口自动化 45 条（含抓包与安全检查）
+cd tests/api-python && python -m pytest     # 接口自动化 45 条（含抓包与安全检查）
 ```
 
 | 层级 | 框架 | 覆盖 |
@@ -126,9 +136,9 @@ cd tests-python && python -m pytest     # 接口自动化 45 条（含抓包与�
 
 | 产物（本地生成，不入库） | 生成方式 |
 |---|---|
-| UI 截图 34 张 + 弹框文本证据 | `mvn test -Dtest=BlogUiTest` → `docs/test-evidence/ui/` |
-| 抓包证据（登录请求明文分析） | `python -m pytest test_security_capture.py` → `docs/test-evidence/capture/login-capture.json` |
-| JMeter 原始结果与 HTML 报告 | `jmeter -n -t perf/BlogSystem-性能测试计划.jmx -l perf/result.jtl -e -o perf/report`（压测计划本身入库） |
-| Allure HTML 报告 | `python -m pytest`（用例已用 `@allure.*` 标注） |
+| UI 截图 34 张 + 弹框文本证据 | `mvn test -Dtest=BlogUiTest` → `tests/evidence/ui/` |
+| 抓包证据（登录请求明文分析） | `cd tests/api-python && python -m pytest test_security_capture.py` → `tests/evidence/capture/login-capture.json` |
+| JMeter 原始结果与 HTML 报告 | `jmeter -n -t tests/perf/BlogSystem-性能测试计划.jmx -l tests/reports/jmeter/result.jtl -e -o tests/reports/jmeter`（压测计划本身入库） |
+| Allure HTML 报告 | `cd tests/api-python && python -m pytest`，再 `allure generate ../reports/allure-results -o ../reports/allure-python --clean` |
 
 > 需要本机 MySQL 已启动（连接配置见 `src/test/resources/application-test.yml`，与开发/生产配置隔离）。

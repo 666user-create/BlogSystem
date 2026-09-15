@@ -6,7 +6,7 @@
 
 > **微服务学习分支**：`blog-cloud/` 是基于本工程拆出来的 **Spring Cloud Alibaba 五组件学习项目**
 > （Nacos / Gateway / Sentinel / RocketMQ / Seata）。零基础入门教学见
-> [docs/SpringCloud入门教学.md](docs/SpringCloud入门教学.md)（概念讲解 + 代码片段 + 启动步骤 + 验收清单）。原单体工程保持不动。
+> [blog-cloud/docs/SpringCloud入门教学.md](blog-cloud/docs/SpringCloud入门教学.md)（概念讲解 + 代码片段 + 启动步骤 + 验收清单，属于微服务工程内部文档）。原单体工程保持不动。
 
 ## 技术栈
 

@@ -49,7 +49,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  *   1. @SpringBootTest(RANDOM_PORT)：测试自己启动应用，不依赖手工启动的 8080；
  *   2. Headless Chrome：无界面运行，适合 CI；
  *   3. 显式等待（WebDriverWait）：不用 Thread.sleep，等待元素/跳转/alert，降低偶发失败；
- *   4. 截图断言：关键步骤截图保存到 docs/test-evidence/ui/，并断言文件生成成功；
+ *   4. 截图断言：关键步骤截图保存到 tests/evidence/ui/，并断言文件生成成功；
  *   5. 数据独立：每次注册随机用户名，用例可重复执行。
  *
  * 运行：mvn test -Dtest=BlogUiTest（需要本机 MySQL，用户名/密码见 application-test.yml）
@@ -60,11 +60,10 @@ import static org.junit.jupiter.api.Assertions.fail;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class BlogUiTest {
 
-    /** 显式等待超时（页面渲染 + AJAX 请求） */
     private static final Duration WAIT = Duration.ofSeconds(15);
 
-    /** 截图证据目录（相对项目根，随 git 提交） */
-    private static final String SHOT_DIR = "docs/test-evidence/ui";
+    /** 截图证据目录（相对项目根；属生成物，已 gitignore，所有测试产物统一收在 tests/ 下） */
+    private static final String SHOT_DIR = "tests/evidence/ui";
 
     private static WebDriver driver;
 

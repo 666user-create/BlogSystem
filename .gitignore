@@ -26,12 +26,6 @@ application-local.properties
 # ===== 本地测试工具（Allure/JMeter 等，不入库）=====
 .tools/
 
-# ===== 测试报告（可再生的生成物，用命令重新生成，不入库）=====
-# Allure / JMeter 原始数据与计划文件是入库的，HTML 报告目录不入库
-allure-results/
-reports/
-perf/report/
-
 # ===== 数据库备份（含真实数据，不入库）=====
 backup/
 
@@ -39,9 +33,6 @@ backup/
 blog-cloud/logs/
 blog-cloud/work/
 blog-cloud/derby.log
-
-# ===== 性能测试运行日志 =====
-perf/jmeter.log
 
 # ===== 应用运行日志（单体工程，已统一收进 logs/）=====
 logs/
@@ -51,10 +42,20 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 
-# ===== 测试证据与压测原始数据（跑测试/压测时本地生成，不入库）=====
-# 这些是"跑一次就有"的产物，体积大且会随每次执行变化，仓库只保留可复现的脚本与结论：
-#   UI 截图/弹框文本：mvn test -Dtest=BlogUiTest
-#   抓包证据：        python -m pytest test_security_capture.py
-#   JMeter 原始结果： jmeter -n -t perf/BlogSystem-性能测试计划.jmx -l perf/result.jtl -e -o perf/report
-docs/test-evidence/
-perf/result.jtl
+# ===== 测试生成物（跑一次就有，不入库）=====
+# tests/ 下只有"可复现的资产"入库：api-python/（用例）、perf/（.jmx 计划）
+# 下面这两类是产出物，体积大且每次执行都变，统一收在 tests/ 下，整体忽略：
+#   tests/evidence/  UI 截图 + 弹框文本 + 抓包 json
+#   tests/reports/   JMeter 原始结果/HTML Dashboard、Allure 原始结果/HTML 报告
+#
+# 生成命令：
+#   UI 截图：      mvn test -Dtest=BlogUiTest
+#   抓包证据：     cd tests/api-python && python -m pytest test_security_capture.py
+#   性能测试：     jmeter -n -t tests/perf/BlogSystem-性能测试计划.jmx -l tests/reports/jmeter/result.jtl -e -o tests/reports/jmeter
+tests/evidence/
+tests/reports/
+tests/perf/jmeter.log
+jmeter.log
+# 兜底：万一 Java 侧 allure 没走 src/test/resources/allure.properties 的改道配置，
+# 默认仍会在仓库根目录生成 allure-results/
+allure-results/

@@ -8,10 +8,10 @@
        可通过环境变量覆盖：set BASE_URL=http://127.0.0.1:8080
 
 运行：
-    cd tests-python
+    cd tests/api-python
     pytest                    # 全量执行
     pytest -k login           # 只跑登录相关
-    allure serve ../target/allure-results-python    # 查看 Allure 报告
+    allure serve ../reports/allure-results    # 查看 Allure 报告
 """
 
 import os

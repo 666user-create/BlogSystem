@@ -7,7 +7,7 @@
     结果可重复执行并落盘为 JSON 证据。
 
 对应用例文档：docs/03-测试用例设计.md 的 TC-SEC-03（敏感信息）、TC-SEC-02（注入）
-抓包证据输出：docs/test-evidence/capture/login-capture.json
+抓包证据输出：tests/evidence/capture/login-capture.json（生成物，不入库）
 """
 
 import json
@@ -20,8 +20,8 @@ import requests
 from conftest import DEFAULT_PASSWORD, login
 from proxy_server import CaptureProxy
 
-# 抓包证据目录
-CAPTURE_DIR = os.path.join("..", "docs", "test-evidence", "capture")
+# 抓包证据目录（相对本目录：tests/api-python/ → tests/evidence/capture）
+CAPTURE_DIR = os.path.join("..", "evidence", "capture")
 PROXY_PORT = 8899
 
 

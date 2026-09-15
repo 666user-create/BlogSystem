@@ -1,0 +1,7 @@
+# 换行符策略：保证 mvnw / *.sh 在 Linux/macOS 上可执行（CRLF 会导致 bad interpreter: ^M）
+mvnw text eol=lf
+*.sh text eol=lf
+
+# Windows 批处理保持 CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf

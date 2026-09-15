@@ -30,7 +30,11 @@
 
 ## 快速启动
 
-前置要求：JDK 17+、Maven、MySQL 8。
+前置要求：JDK 17+、MySQL 8。**Maven 不需要自己装**——工程自带 Maven Wrapper，用 `mvnw` 会自动准备 3.9.16：
+
+```bash
+./mvnw -v            # Windows: mvnw.cmd -v，Linux/macOS: ./mvnw -v
+```
 
 1. 初始化数据库：
 
@@ -44,12 +48,13 @@
 3. 启动项目：
 
    ```bash
-   mvn spring-boot:run
+   ./mvnw spring-boot:run          # Windows: mvnw.cmd spring-boot:run
    ```
 
 4. 浏览器访问：http://localhost:8080/blog_list.html
 
 > 应用首次启动会自动创建默认管理员账号：**admin / admin123**。
+> `blog-cloud/`（微服务工程）也自带一份 wrapper，在那个目录里用 `./mvnw` 同理。
 
 ## 接口清单
 

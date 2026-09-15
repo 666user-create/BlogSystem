@@ -154,9 +154,18 @@ class BlogUiTest {
         return text;
     }
 
+    /**
+     * 生成测试用户名：前缀 + 固定 6 位数字后缀
+     * 固定位数很重要——测试数据清理脚本是按"字母前缀 + 数字后缀"识别测试账号的，
+     * 后缀位数不稳定（例如 % 1000000 得到 5794 只有 4 位）会导致清理规则漏掉这些账号。
+     */
+    private static String testUserName(String prefix) {
+        return prefix + String.format("%06d", System.currentTimeMillis() % 1000000);
+    }
+
     /** 注册一个随机用户并返回用户名（不登录） */
     private String register(String prefix) {
-        String userName = prefix + (System.currentTimeMillis() % 1000000);
+        String userName = testUserName(prefix);
         driver.get(baseUrl + "/blog_register.html");
         driver.findElement(By.id("username")).sendKeys(userName);
         driver.findElement(By.id("password")).sendKeys("123456");
@@ -370,7 +379,7 @@ class BlogUiTest {
     @Order(11)
     @DisplayName("UI-11 注册成功后跳转登录页")
     void ui11_registerSuccess() {
-        String userName = "reg" + (System.currentTimeMillis() % 1000000);
+        String userName = testUserName("reg");
 
         driver.get(baseUrl + "/blog_register.html");
         driver.findElement(By.id("username")).sendKeys(userName);

@@ -6,17 +6,29 @@
 - 组件:Nacos(注册/配置)、Gateway、Sentinel(限流熔断)、RocketMQ(异步消息)、Seata(分布式事务)
 - 版本:Spring Boot 3.3.5 / Spring Cloud 2023.0.3 / Spring Cloud Alibaba 2023.0.3.2 / Java 17
 
-## 快速开始
+## 一键启动(推荐,Windows)
+
+不用记命令,**双击即可**:
+
+| 脚本 | 作用 |
+|---|---|
+| `start-all.bat` | 一键启动:检查 jar → 启动 Nacos(若未运行并等就绪)→ 按顺序启动用户服务/博客服务/网关(各一个日志窗口)→ 打印状态表 → 自动打开浏览器 |
+| `stop-all.bat` | 一键停止三个 Java 服务(保留 Nacos) |
+| `stop-all.bat all` | 三个服务 + Nacos 全部停止 |
+
+命令行里也可以:`powershell -NoProfile -ExecutionPolicy Bypass -File start-all.ps1`
+
+## 手动启动
 
 ```bash
 # 1. 建库(MySQL 需已启动)
 mysql -uroot -proot < init.sql
 
-# 2. 构建(本机 HTTPS 直连中央仓库不通时加 -s maven-settings.xml 走 Clash 代理)
-mvn -s maven-settings.xml -DskipTests clean package
+# 2. 构建(依赖已缓存时可加 -o 离线构建;需联网时用 -s maven-settings.xml 走代理)
+mvn -o -DskipTests clean package
 
 # 3. 启动中间件(按需): Nacos(必, standalone) / RocketMQ / Seata
-#    Nacos:  nacos/bin/startup.cmd -m standalone
+#    Nacos:  D:\nacos-server-2.4.3\nacos\bin\startup.cmd -m standalone
 
 # 4. 启动服务
 java -jar blog-user-service/target/blog-user-service-0.0.1-SNAPSHOT.jar
@@ -43,4 +55,4 @@ mvn test
 
 > 接口级测试（RestAssured + @SpringBootTest）需要 Nacos/MySQL 等环境，后续可基于 Testcontainers 补充。
 
-完整说明(组件实现细节 / 验证清单 / 常见问题):见 `docs/blog-cloud-实现文档.md`(仓库根目录)。
+完整教学文档(零基础入门:概念 / 代码 / 启动 / 验收 / 常见问题):见本工程内的 `docs/SpringCloud入门教学.md`。

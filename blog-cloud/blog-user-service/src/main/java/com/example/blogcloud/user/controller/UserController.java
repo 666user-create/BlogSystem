@@ -74,4 +74,17 @@ public class UserController {
         log.info("Seata 分支接口被调用: userId = {}", userId);
         return userService.increaseBlogCount(userId);
     }
+
+    /**
+     * 内部接口: 查询用户信息(供 blog-service 的 Feign 调用)
+     * <p>
+     * 为什么要单独开一个: 公开接口 /user/getUserInfo 会被 ResponseAdvice 包成 Result,
+     * Feign 按 UserInfoResponse 反序列化会取不到字段(实测踩过的坑);
+     * 路径含 /internal/ 的接口不套壳, 服务间调用必须走这里。
+     */
+    @GetMapping("/internal/getUserInfo")
+    public UserInfoResponse getUserInfoInternal(@RequestParam @NotNull(message = "用户id不能为空") Integer userId) {
+        log.info("内部接口: 获取用户信息 userId={}", userId);
+        return userService.getUserInfo(userId);
+    }
 }

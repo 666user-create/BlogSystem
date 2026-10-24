@@ -167,6 +167,30 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+            <!-- 覆盖率统计（JaCoCo）
+                 意义：UI 自动化用 @SpringBootTest(RANDOM_PORT)，应用与测试跑在同一个 JVM 里，
+                 所以 33 条 UI 用例点出来的后端代码路径也会被统计进来 —— 覆盖率不再是估的，是测出来的。
+                 用法：mvnw test 之后看 target/site/jacoco/index.html（或 jacoco.csv 取数） -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.13</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

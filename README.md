@@ -126,7 +126,7 @@ backup/scripts/     # 辅助脚本：测试数据清理、binlog 数据恢复（
 自动化测试（合计 78 条，全部通过）：
 
 ```bash
-mvn test -Dtest=BlogUiTest              # Selenium UI 自动化 33 条
+mvnw test -Dtest=BlogUiTest                 # Selenium UI 自动化 33 条
 cd tests/api-python && python -m pytest     # 接口自动化 45 条（含抓包与安全检查）
 ```
 
@@ -134,6 +134,10 @@ cd tests/api-python && python -m pytest     # 接口自动化 45 条（含抓包
 |---|---|---|
 | UI 自动化 | Selenium + Java | 33 条核心流程（Headless Chrome + 显式等待 + 截图断言 + 样式断言），证据运行后本地生成 |
 | 接口自动化 | Python + pytest + requests + Allure | 45 条（含分页、抓包明文分析、SQL 注入检查） |
+
+**代码覆盖率**：`mvnw test` 已接入 JaCoCo，当前 **行 83.6%（315/377）、分支 74.6%（88/118）**；
+报告在 `target/site/jacoco/index.html`（生成物，不入库）。UI 用例是 `@SpringBootTest(RANDOM_PORT)`，
+应用与测试同 JVM，所以 UI 操作触发的后端路径也计入覆盖率。
 
 > 仓库只保留**可复现的脚本与测试结论**，不提交"跑一次就有"的产物（截图 / 抓包 json / JMeter 原始结果），
 > 它们已在 `.gitignore` 中忽略，跑一次对应命令即可在本地生成：

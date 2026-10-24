@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import org.example.blogsystem.common.enums.ResultCodeEnum;
 import org.example.blogsystem.common.constant.Constants;
 import org.example.blogsystem.common.exception.BlogException;
 import org.example.blogsystem.common.pojo.response.BlogInfoResponse;
@@ -125,7 +126,7 @@ public class BlogController {
         String token = request.getHeader(Constants.TOKEN);
         String userName = JwtUtils.getUserNameFromToken(token);
         if (!"admin".equals(userName)) {
-            throw new BlogException("无管理员权限");
+            throw new BlogException(ResultCodeEnum.NO_PERMISSION, "无管理员权限");
         }
     }
 
@@ -133,7 +134,7 @@ public class BlogController {
         String token = request.getHeader(Constants.TOKEN);
         Integer userId = JwtUtils.getUserIdFromToken(token);
         if (userId == null) {
-            throw new BlogException("登录已失效，请重新登录");
+            throw new BlogException(ResultCodeEnum.NOT_LOGIN, "登录已失效，请重新登录");
         }
         return userId;
     }

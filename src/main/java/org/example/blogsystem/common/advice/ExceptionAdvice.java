@@ -2,6 +2,7 @@ package org.example.blogsystem.common.advice;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.example.blogsystem.common.enums.ResultCodeEnum;
 import org.example.blogsystem.common.exception.BlogException;
 import org.example.blogsystem.common.pojo.response.Result;
 import org.springframework.http.HttpStatus;
@@ -32,14 +33,14 @@ public class ExceptionAdvice {
     @ExceptionHandler(value = BlogException.class)
     public Result exceptionHandler(BlogException exception) {
         log.error(exception.getMessage(), exception);
-        return Result.fail(exception.getMessage());
+        return Result.fail(exception.getCode(), exception.getMessage());
     }
 
     @ExceptionHandler(value = HandlerMethodValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result exceptionHandler(HandlerMethodValidationException exception) {
         log.error(exception.getMessage(), exception);
-        return Result.fail("参数校验失败");
+        return Result.fail(ResultCodeEnum.PARAM_ERROR.getCode(), "参数校验失败");
     }
 
     /**
@@ -52,14 +53,14 @@ public class ExceptionAdvice {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result exceptionHandler(ConstraintViolationException exception) {
         log.error(exception.getMessage(), exception);
-        return Result.fail("参数校验失败");
+        return Result.fail(ResultCodeEnum.PARAM_ERROR.getCode(), "参数校验失败");
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result exceptionHandler(MethodArgumentNotValidException exception) {
         log.error(exception.getMessage(), exception);
-        return Result.fail("参数校验失败");
+        return Result.fail(ResultCodeEnum.PARAM_ERROR.getCode(), "参数校验失败");
     }
 
     @ExceptionHandler(value = NoResourceFoundException.class)

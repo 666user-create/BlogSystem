@@ -137,7 +137,7 @@ class BlogApiTest extends BaseApiTest {
                 .get("/blog/getBlogDetail?blogId=99999999")
         .then()
                 .statusCode(200)
-                .body("code", equalTo(-1))
+                .body("code", equalTo(1005))
                 .body("errMsg", equalTo("博客不存在"));
     }
 
@@ -245,7 +245,7 @@ class BlogApiTest extends BaseApiTest {
                 .post("/blog/update")
         .then()
                 .statusCode(200)
-                .body("code", equalTo(-1))
+                .body("code", equalTo(1006))
                 .body("errMsg", equalTo("无权编辑该博客"));
     }
 
@@ -272,7 +272,7 @@ class BlogApiTest extends BaseApiTest {
                 .get("/blog/getBlogDetail?blogId=" + blogId)
         .then()
                 .statusCode(200)
-                .body("code", equalTo(-1))
+                .body("code", equalTo(1005))
                 .body("errMsg", equalTo("博客不存在"));
     }
 
@@ -287,7 +287,7 @@ class BlogApiTest extends BaseApiTest {
                 .post("/blog/delete?blogId=" + blogId)
         .then()
                 .statusCode(200)
-                .body("code", equalTo(-1))
+                .body("code", equalTo(1006))
                 .body("errMsg", equalTo("无权删除该博客"));
     }
 

@@ -37,6 +37,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -891,5 +892,39 @@ class BlogUiTest {
         assertNotEquals("rgba(0, 0, 0, 0)", cardBg, "卡片背景不应为透明（说明卡片样式已生效）");
         assertNotEquals("0px", cardPadding, "卡片应有内边距（说明卡片样式已生效）");
         assertNotEquals("0px", cardRadius, "卡片应有圆角（说明卡片样式已生效）");
+    }
+
+    @Test
+    @Order(34)
+    @DisplayName("UI-34 详情页对 Markdown 中的脚本做消毒（BUG-11 回归）")
+    void ui34_detailSanitizesXss() {
+        registerAndLogin("xss");
+        // 正文里夹带两种典型 XSS：<script> 标签、<img onerror> 事件，同时保留一段正常 Markdown
+        publishBlog("XSS 消毒验证",
+                "<script>window.__xss=1</script>\n\n"
+                        + "<img src=x onerror=\"window.__xss2=1\">\n\n"
+                        + "**正常加粗** 不应被误伤");
+
+        openFirstBlogDetail();   // 列表按 id 倒序，第一篇就是刚发的
+        new WebDriverWait(driver, WAIT).until(ExpectedConditions.visibilityOfElementLocated(
+                By.cssSelector(".content .detail")));
+        screenshot("UI-34-详情页XSS消毒");
+
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        String innerHtml = String.valueOf(js.executeScript(
+                "return document.querySelector('.content .detail').innerHTML;")).toLowerCase();
+
+        // 1. 危险内容必须被剔除（只检查正文区，页面自身的 editor.md 脚本不算）
+        assertFalse(innerHtml.contains("<script"), "正文区不应出现 <script> 标签");
+        assertFalse(innerHtml.contains("onerror"), "正文区不应保留 on* 事件属性");
+        assertFalse(innerHtml.contains("javascript:"), "正文区不应保留 javascript: 伪协议");
+
+        // 2. 脚本确实没有执行
+        assertNull(js.executeScript("return window.__xss;"), "注入的脚本不应被执行");
+        assertNull(js.executeScript("return window.__xss2;"), "onerror 不应被执行");
+
+        // 3. 消毒不能误伤正常的 Markdown 渲染
+        assertTrue(driver.findElements(By.cssSelector(".content .detail strong")).size() > 0,
+                "**加粗** 仍应渲染成 <strong>");
     }
 }

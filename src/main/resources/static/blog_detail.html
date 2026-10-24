@@ -66,6 +66,35 @@
         var params = new URLSearchParams(location.search);
         var blogId = params.get("blogId");
 
+        /**
+         * 渲染前消毒（BUG-11：博客正文未做 XSS 过滤）
+         * 博客正文是 Markdown，允许夹带原始 HTML；若直接 innerHTML 会执行脚本，形成存储型 XSS。
+         * 这里做"只删危险内容"的清理，保留正常标签（<strong>、<br>、<table>…），不影响 Markdown 渲染：
+         *   1) 删除 script / iframe / object / embed / link / style / form / base / meta
+         *   2) 删除所有以 on 开头的事件属性（onerror / onclick / onload …）
+         *   3) 删除 href / src 中以 javascript: 开头的值
+         */
+        function sanitizeHtml(html) {
+            var $wrap = $("<div>").html(html);
+            $wrap.find("script,iframe,object,embed,link,style,form,base,meta").remove();
+            $wrap.find("*").addBack().each(function () {
+                if (!this.attributes) {
+                    return;
+                }
+                Array.prototype.slice.call(this.attributes).forEach(function (attr) {
+                    var name = attr.name.toLowerCase();
+                    var value = (attr.value || "").trim().toLowerCase();
+                    if (name.indexOf("on") === 0) {
+                        this.removeAttribute(attr.name);
+                    } else if ((name === "href" || name === "src" || name === "xlink:href")
+                            && value.indexOf("javascript:") === 0) {
+                        this.removeAttribute(attr.name);
+                    }
+                }, this);
+            });
+            return $wrap.html();
+        }
+
         if (!blogId) {
             alert("缺少博客ID");
         } else {
@@ -89,7 +118,9 @@
                         } else {
                             html = $("<div>").text(raw).html();  // 兜底：转义后按纯文本展示
                         }
-                        $(".content .detail").html(html);
+                        // BUG-11 修复：Markdown 里可以夹带原始 HTML，直接 innerHTML 会执行
+                        // <script>、<img onerror> 这类脚本（存储型 XSS）。插入页面前先去危险内容。
+                        $(".content .detail").html(sanitizeHtml(html));
 
                         // 仅作者本人显示"编辑/删除"按钮：
                         // 当前登录用户 id 与博客作者 id 一致时才展示（后端另有权限校验兜底）

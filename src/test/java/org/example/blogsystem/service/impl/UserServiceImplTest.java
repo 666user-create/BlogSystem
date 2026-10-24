@@ -2,6 +2,7 @@ package org.example.blogsystem.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.example.blogsystem.common.exception.BlogException;
+import org.example.blogsystem.common.limiter.LoginAttemptLimiter;
 import org.example.blogsystem.common.pojo.dataObject.UserInfo;
 import org.example.blogsystem.common.pojo.request.UserLoginRequest;
 import org.example.blogsystem.common.pojo.request.UserRegisterRequest;
@@ -55,7 +56,16 @@ class UserServiceImplTest {
     @Mock
     private BlogService blogService;
 
-    /** 被测对象：把上面两个假对象注入进去 */
+    /**
+     * 假的登录限流器（BUG-08 引入）
+     * <p>
+     * 单元测试只关心 UserServiceImpl 的分支逻辑，不关心限流窗口的真实时间行为：
+     * Mockito 对 long 返回值默认是 0，正好表示"未被限流"；失败计数/清零是 void 方法，无需打桩。
+     */
+    @Mock
+    private LoginAttemptLimiter loginAttemptLimiter;
+
+    /** 被测对象：把上面的假对象注入进去 */
     @InjectMocks
     private UserServiceImpl userService;
 

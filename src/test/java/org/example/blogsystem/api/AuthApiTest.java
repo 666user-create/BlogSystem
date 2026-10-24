@@ -10,9 +10,10 @@ import static io.restassured.RestAssured.given;
  * ============================================================
  * 覆盖：JWT 登录拦截器对受保护接口的校验（业务规则 BR-01）
  *
- * 拦截规则：除 /user/login、/user/register 外，
- * 所有 /user/**、/blog/** 接口必须携带有效 token，
- * token 缺失/无效/过期 → HTTP 401（无响应体，拦截器直接返回）
+ * 拦截规则：需要 token 的接口 —— /user/**（除 login/register）、/blog 的写操作与管理端；
+ * token 缺失/无效/伪造 → HTTP 401（无响应体，拦截器直接返回）。
+ * 游客可读：/blog/getList、/blog/getBlogDetail（BUG-07 修复后对游客开放），
+ * 因此鉴权探针改用仍受保护的 /blog/adminList。
  *
  * 对应测试用例文档：docs/03-测试用例设计.md 的 TC-AUTH
  * ============================================================
@@ -24,7 +25,7 @@ class AuthApiTest extends BaseApiTest {
     void noToken_unauthorized() {
         given()
         .when()
-                .get("/blog/getList")          // 不带任何 token 请求头
+                .get("/blog/adminList")          // 不带任何 token 请求头
         .then()
                 .statusCode(401);              // 期望 401 未登录
     }
@@ -35,7 +36,7 @@ class AuthApiTest extends BaseApiTest {
         given()
                 .header("user_token", "")      // token 为空字符串
         .when()
-                .get("/blog/getList")
+                .get("/blog/adminList")
         .then()
                 .statusCode(401);
     }
@@ -50,7 +51,7 @@ class AuthApiTest extends BaseApiTest {
         given()
                 .header("user_token", tampered)
         .when()
-                .get("/blog/getList")
+                .get("/blog/adminList")
         .then()
                 .statusCode(401);              // JWT 签名校验失败 → 401
     }

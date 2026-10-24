@@ -46,7 +46,7 @@ class AdminApiTest extends BaseApiTest {
                 .get("/blog/adminList")
         .then()
                 .statusCode(200)
-                .body("code", equalTo(-1))
+                .body("code", equalTo(1006))
                 .body("errMsg", equalTo("无管理员权限"));
     }
 
@@ -97,7 +97,7 @@ class AdminApiTest extends BaseApiTest {
                 .post("/blog/togglePublish?blogId=" + blogId)
         .then()
                 .statusCode(200)
-                .body("code", equalTo(-1))
+                .body("code", equalTo(1006))
                 .body("errMsg", equalTo("无管理员权限"));
     }
 
@@ -110,7 +110,7 @@ class AdminApiTest extends BaseApiTest {
                 .post("/blog/togglePublish?blogId=99999999")
         .then()
                 .statusCode(200)
-                .body("code", equalTo(-1))
+                .body("code", equalTo(1005))
                 .body("errMsg", equalTo("博客不存在"));
     }
 

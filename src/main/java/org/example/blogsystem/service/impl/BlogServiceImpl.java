@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import org.example.blogsystem.common.enums.ResultCodeEnum;
 import org.example.blogsystem.common.pojo.dataObject.BlogInfo;
 import org.example.blogsystem.common.pojo.response.BlogInfoResponse;
 import org.example.blogsystem.common.pojo.response.PageResult;
@@ -76,7 +77,7 @@ public class BlogServiceImpl implements BlogService {
     public BlogInfoResponse getBlogDetail(@NotNull Integer blogId) {
         BlogInfo blogInfo = getBlogInfo(blogId);
         if (blogInfo == null) {
-            throw new BlogException("博客不存在");
+            throw new BlogException(ResultCodeEnum.BLOG_NOT_FOUND, "博客不存在");
         }
         return MyBeanUtils.transBlogInfo(blogInfo);
     }
@@ -98,13 +99,13 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public void addBlog(String title, String content, Integer userId) {
         if (title == null || title.trim().isEmpty()) {
-            throw new BlogException("标题不能为空");
+            throw new BlogException(ResultCodeEnum.PARAM_ERROR, "标题不能为空");
         }
         if (content == null || content.trim().isEmpty()) {
-            throw new BlogException("内容不能为空");
+            throw new BlogException(ResultCodeEnum.PARAM_ERROR, "内容不能为空");
         }
         if (userId == null) {
-            throw new BlogException("用户未登录");
+            throw new BlogException(ResultCodeEnum.NOT_LOGIN, "用户未登录");
         }
         BlogInfo blogInfo = new BlogInfo();
         blogInfo.setTitle(title.trim());
@@ -124,24 +125,24 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public void updateBlog(Integer blogId, String title, String content, Integer userId) {
         if (blogId == null) {
-            throw new BlogException("博客id不能为空");
+            throw new BlogException(ResultCodeEnum.PARAM_ERROR, "博客id不能为空");
         }
         if (title == null || title.trim().isEmpty()) {
-            throw new BlogException("标题不能为空");
+            throw new BlogException(ResultCodeEnum.PARAM_ERROR, "标题不能为空");
         }
         if (content == null || content.trim().isEmpty()) {
-            throw new BlogException("内容不能为空");
+            throw new BlogException(ResultCodeEnum.PARAM_ERROR, "内容不能为空");
         }
         if (userId == null) {
-            throw new BlogException("用户未登录");
+            throw new BlogException(ResultCodeEnum.NOT_LOGIN, "用户未登录");
         }
 
         BlogInfo blogInfo = getBlogInfo(blogId);
         if (blogInfo == null) {
-            throw new BlogException("博客不存在");
+            throw new BlogException(ResultCodeEnum.BLOG_NOT_FOUND, "博客不存在");
         }
         if (!String.valueOf(userId).equals(blogInfo.getUserId())) {
-            throw new BlogException("无权编辑该博客");
+            throw new BlogException(ResultCodeEnum.NO_PERMISSION, "无权编辑该博客");
         }
 
         blogInfo.setTitle(title.trim());
@@ -156,18 +157,18 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public void deleteBlog(Integer blogId, Integer userId) {
         if (blogId == null) {
-            throw new BlogException("博客id不能为空");
+            throw new BlogException(ResultCodeEnum.PARAM_ERROR, "博客id不能为空");
         }
         if (userId == null) {
-            throw new BlogException("用户未登录");
+            throw new BlogException(ResultCodeEnum.NOT_LOGIN, "用户未登录");
         }
 
         BlogInfo blogInfo = getBlogInfo(blogId);
         if (blogInfo == null) {
-            throw new BlogException("博客不存在");
+            throw new BlogException(ResultCodeEnum.BLOG_NOT_FOUND, "博客不存在");
         }
         if (!String.valueOf(userId).equals(blogInfo.getUserId())) {
-            throw new BlogException("无权删除该博客");
+            throw new BlogException(ResultCodeEnum.NO_PERMISSION, "无权删除该博客");
         }
 
         blogInfo.setDeleteFlag(1);
@@ -197,11 +198,11 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public void togglePublish(Integer blogId, Integer adminUserId) {
         if (blogId == null) {
-            throw new BlogException("博客id不能为空");
+            throw new BlogException(ResultCodeEnum.PARAM_ERROR, "博客id不能为空");
         }
         BlogInfo blogInfo = blogInfoMapper.selectById(blogId);
         if (blogInfo == null || blogInfo.getDeleteFlag() == 1) {
-            throw new BlogException("博客不存在");
+            throw new BlogException(ResultCodeEnum.BLOG_NOT_FOUND, "博客不存在");
         }
         int newStatus = (blogInfo.getPublishedStatus() != null && blogInfo.getPublishedStatus() == 1) ? 0 : 1;
         blogInfo.setPublishedStatus(newStatus);

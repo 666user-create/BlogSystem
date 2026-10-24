@@ -33,7 +33,7 @@ class TestAdminList:
         resp = requests.get(f"{base_url}/blog/adminList", headers=auth["headers"], timeout=10)
         body = resp.json()
 
-        assert body["code"] == -1
+        assert body["code"] == 1006
         assert body["errMsg"] == "无管理员权限"
 
     @allure.story("管理员列表")
@@ -87,7 +87,7 @@ class TestTogglePublish:
             timeout=10,
         )
         body = resp.json()
-        assert body["code"] == -1
+        assert body["code"] == 1006
         assert body["errMsg"] == "无管理员权限"
 
     @allure.story("上下架")
@@ -100,5 +100,5 @@ class TestTogglePublish:
             timeout=10,
         )
         body = resp.json()
-        assert body["code"] == -1
+        assert body["code"] == 1005
         assert body["errMsg"] == "博客不存在"

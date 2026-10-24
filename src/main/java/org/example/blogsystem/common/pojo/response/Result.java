@@ -22,6 +22,14 @@ public class Result {
         return result;
     }
 
+    /** 带业务错误码的失败响应（前端可据此区分提示） */
+    public static Result fail(Integer code, String errMsg) {
+        Result result = new Result();
+        result.setCode(code);
+        result.setErrMsg(errMsg);
+        return result;
+    }
+
     public static Result fail(Object data) {
         Result result = new Result();
         result.setCode(-1);

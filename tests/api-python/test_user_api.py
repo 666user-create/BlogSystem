@@ -35,7 +35,7 @@ class TestRegister:
             resp = register_user(base_url, new_user)
 
         body = resp.json()
-        assert body["code"] == -1
+        assert body["code"] == 1004
         assert body["errMsg"] == "用户名已被注册"
 
     @allure.story("注册")
@@ -84,7 +84,7 @@ class TestLogin:
         resp = login(base_url, "no_such_user_99999")
         body = resp.json()
 
-        assert body["code"] == -1
+        assert body["code"] == 1002
         assert body["errMsg"] == "用户不存在"
 
     @allure.story("登录")
@@ -93,7 +93,7 @@ class TestLogin:
         resp = login(base_url, new_user, "wrong-password")
         body = resp.json()
 
-        assert body["code"] == -1
+        assert body["code"] == 1003
         assert body["errMsg"] == "密码错误"
 
     @allure.story("登录")
@@ -149,5 +149,35 @@ class TestUserInfo:
             timeout=10,
         )
         body = resp.json()
-        assert body["code"] == -1
+        assert body["code"] == 1005
         assert body["errMsg"] == "博客不存在"
+
+
+@allure.feature("用户模块")
+class TestLoginRateLimit:
+    """
+    登录频率限制（对应设计用例 TC-LOG-09，BUG-08 修复后的回归用例）
+
+    规则：同一用户名 60 秒内最多允许 5 次**失败**；第 6 次返回业务码 1029。
+    只统计失败、成功会清零，所以正常用户和换一个账号都不受影响。
+    """
+
+    @allure.story("登录")
+    @allure.title("TC-LOG-09 连续失败触发登录限流，且不影响其他账号")
+    @allure.severity(allure.severity_level.CRITICAL)
+    def test_login_rate_limited(self, base_url, new_user):
+        with allure.step("连续 5 次错误密码：应每次都是 1003 密码错误"):
+            for _ in range(5):
+                body = login(base_url, new_user, "wrong-password").json()
+                assert body["code"] == 1003, body
+
+        with allure.step("第 6 次：应被限流，返回 1029"):
+            body = login(base_url, new_user, "wrong-password").json()
+            assert body["code"] == 1029, body
+            assert "频繁" in body["errMsg"]
+
+        with allure.step("限流只针对失败过多的账号：另一个从未失败过的账号照常登录成功"):
+            other = unique_name("rate")
+            assert register_user(base_url, other).json()["code"] == 200
+            assert login(base_url, other).json()["code"] == 200
+

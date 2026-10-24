@@ -57,7 +57,7 @@ class UserApiTest extends BaseApiTest {
                 .post("/user/register")
         .then()
                 .statusCode(200)                                     // 业务失败时 HTTP 仍是 200
-                .body("code", equalTo(-1))                           // 业务码：失败
+                .body("code", equalTo(1004))                           // 业务码：失败
                 .body("errMsg", equalTo("用户名已被注册"));          // 错误信息
     }
 
@@ -72,7 +72,7 @@ class UserApiTest extends BaseApiTest {
                 .post("/user/register")
         .then()
                 .statusCode(400)                                  // 参数校验失败返回 400
-                .body("code", equalTo(-1))
+                .body("code", equalTo(1001))
                 .body("errMsg", equalTo("参数校验失败"));
     }
 
@@ -121,7 +121,7 @@ class UserApiTest extends BaseApiTest {
                 .post("/user/login")
         .then()
                 .statusCode(200)
-                .body("code", equalTo(-1))
+                .body("code", equalTo(1002))
                 .body("errMsg", equalTo("用户不存在"));
     }
 
@@ -136,7 +136,7 @@ class UserApiTest extends BaseApiTest {
                 .post("/user/login")
         .then()
                 .statusCode(200)
-                .body("code", equalTo(-1))
+                .body("code", equalTo(1003))
                 .body("errMsg", equalTo("密码错误"));
     }
 
@@ -188,7 +188,7 @@ class UserApiTest extends BaseApiTest {
                 .get("/user/getAuthorInfo?blogId=99999999")
         .then()
                 .statusCode(200)
-                .body("code", equalTo(-1))
+                .body("code", equalTo(1005))
                 .body("errMsg", equalTo("博客不存在"));
     }
 }

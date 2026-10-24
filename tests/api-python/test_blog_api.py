@@ -166,7 +166,7 @@ class TestBlogDetail:
             timeout=10,
         )
         body = resp.json()
-        assert body["code"] == -1
+        assert body["code"] == 1005
         assert body["errMsg"] == "博客不存在"
 
     @allure.story("详情")
@@ -179,7 +179,9 @@ class TestBlogDetail:
             timeout=10,
         )
         assert resp.status_code == 400, "非法参数应返回 HTTP 400"
-        assert resp.json()["errMsg"] == "参数校验失败"
+        body = resp.json()
+        assert body["errMsg"] == "参数校验失败"
+        assert body["code"] == 1001, "参数校验类失败应返回业务码 1001"
 
 
 @allure.feature("博客模块")
@@ -280,7 +282,7 @@ class TestBlogUpdate:
             timeout=10,
         )
         body = resp.json()
-        assert body["code"] == -1
+        assert body["code"] == 1006
         assert body["errMsg"] == "无权编辑该博客"
 
 
@@ -309,7 +311,7 @@ class TestBlogDelete:
             headers=auth["headers"],
             timeout=10,
         ).json()
-        assert detail["code"] == -1
+        assert detail["code"] == 1005
         assert detail["errMsg"] == "博客不存在"
 
     @allure.story("删除")
@@ -324,7 +326,7 @@ class TestBlogDelete:
             timeout=10,
         )
         body = resp.json()
-        assert body["code"] == -1
+        assert body["code"] == 1006
         assert body["errMsg"] == "无权删除该博客"
 
     @allure.story("删除")
@@ -337,5 +339,5 @@ class TestBlogDelete:
             timeout=10,
         )
         body = resp.json()
-        assert body["code"] == -1
+        assert body["code"] == 1005
         assert body["errMsg"] == "博客不存在"

@@ -118,29 +118,29 @@ backup/scripts/     # 辅助脚本：测试数据清理、binlog 数据恢复（
 | `docs/03-测试用例设计.md` | 93 条测试用例（等价类/边界值/判定表/场景法/错误推测） |
 | `docs/04-测试执行记录.md` | 执行统计、回归记录、自动化执行明细 |
 | `docs/05-测试总结报告.md` | 缺陷分析、质量评估、性能结论 |
-| `docs/06-UI自动化测试说明.md` | Selenium 框架设计、33 条 UI 用例、截图证据 |
+| `docs/06-UI自动化测试说明.md` | Selenium 框架设计、34 条 UI 用例、截图证据 |
 | `docs/07-接口测试与抓包分析说明.md` | pytest 接口自动化、抓包代理与明文分析 |
 | `docs/08-性能测试报告.md` | JMeter 压测结果（吞吐量 90.1 请求/秒、平均 5.9ms） |
 | `docs/缺陷清单.md` | 18 条缺陷（BUG-01 ~ BUG-18），含严重级别与修复状态 |
 
-自动化测试（合计 78 条，全部通过）：
+自动化测试（合计 81 条，全部通过）：
 
 ```bash
-mvn test -Dtest=BlogUiTest              # Selenium UI 自动化 33 条
-cd tests/api-python && python -m pytest     # 接口自动化 45 条（含抓包与安全检查）
+mvn test -Dtest=BlogUiTest              # Selenium UI 自动化 34 条
+cd tests/api-python && python -m pytest     # 接口自动化 47 条（含抓包与安全检查）
 ```
 
 | 层级 | 框架 | 覆盖 |
 |---|---|---|
-| UI 自动化 | Selenium + Java | 33 条核心流程（Headless Chrome + 显式等待 + 截图断言 + 样式断言），证据运行后本地生成 |
-| 接口自动化 | Python + pytest + requests + Allure | 45 条（含分页、抓包明文分析、SQL 注入检查） |
+| UI 自动化 | Selenium + Java | 34 条核心流程（Headless Chrome + 显式等待 + 截图断言 + 样式断言），证据运行后本地生成 |
+| 接口自动化 | Python + pytest + requests + Allure | 47 条（含分页、抓包明文分析、SQL 注入检查） |
 
 > 仓库只保留**可复现的脚本与测试结论**，不提交"跑一次就有"的产物（截图 / 抓包 json / JMeter 原始结果），
 > 它们已在 `.gitignore` 中忽略，跑一次对应命令即可在本地生成：
 
 | 产物（本地生成，不入库） | 生成方式 |
 |---|---|
-| UI 截图 34 张 + 弹框文本证据 | `mvn test -Dtest=BlogUiTest` → `tests/evidence/ui/` |
+| UI 截图 35 张 + 弹框文本证据 | `mvn test -Dtest=BlogUiTest` → `tests/evidence/ui/` |
 | 抓包证据（登录请求明文分析） | `cd tests/api-python && python -m pytest test_security_capture.py` → `tests/evidence/capture/login-capture.json` |
 | JMeter 原始结果与 HTML 报告 | `jmeter -n -t tests/perf/BlogSystem-性能测试计划.jmx -l tests/reports/jmeter/result.jtl -e -o tests/reports/jmeter`（压测计划本身入库） |
 | Allure HTML 报告 | `cd tests/api-python && python -m pytest`，再 `allure generate ../reports/allure-results -o ../reports/allure-python --clean` |

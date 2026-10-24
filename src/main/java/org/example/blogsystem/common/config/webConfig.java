@@ -18,12 +18,18 @@ public class webConfig implements WebMvcConfigurer {
     /**
      * 注册登录拦截器
      * <p>
-     * 拦截 /blog/** 和 /user/** 接口，放行 /user/login 和 /user/register。
+     * 拦截 /blog/** 和 /user/** 接口；放行：
+     * <ul>
+     *   <li>/user/login、/user/register：登录注册本身</li>
+     *   <li>/blog/getList、/blog/getBlogDetail：游客可浏览（BUG-07 修复）——
+     *       列表与详情是只读内容，允许未登录用户查看；写操作、管理端、用户接口仍需登录</li>
+     * </ul>
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginInterceptor)
                 .addPathPatterns("/blog/**","/user/**")
-                .excludePathPatterns("/user/login","/user/register");
+                .excludePathPatterns("/user/login","/user/register",
+                        "/blog/getList","/blog/getBlogDetail");
     }
 }

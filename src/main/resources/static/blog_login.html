@@ -51,28 +51,30 @@
                 alert("用户名和密码不能为空");
                 return;
             }
-            $.ajax({
-                type: "post",
-                url: "/user/login",
-                contentType: "application/json",
-                data: JSON.stringify({
-                    userName: username,
-                    password: password
-                }),
-                success: function (result) {
-                    if (result && result.code === 200 && result.data) {
-                        sessionStorage.clear();
-                        sessionStorage.setItem("loginUserId", result.data.userId);
-                        sessionStorage.setItem("user_token", result.data.token);
-                        sessionStorage.setItem("userName", result.data.userName || "");
-                        location.href = "blog_list.html";
-                    } else {
-                        alert(result && result.errMsg ? result.errMsg : "用户名或密码错误");
+            encryptPassword(password).then(function (encryptedPassword) {
+                $.ajax({
+                    type: "post",
+                    url: "/user/login",
+                    contentType: "application/json",
+                    data: JSON.stringify({
+                        userName: username,
+                        encryptedPassword: encryptedPassword
+                    }),
+                    success: function (result) {
+                        if (result && result.code === 200 && result.data) {
+                            sessionStorage.clear();
+                            sessionStorage.setItem("loginUserId", result.data.userId);
+                            sessionStorage.setItem("user_token", result.data.token);
+                            sessionStorage.setItem("userName", result.data.userName || "");
+                            location.href = "blog_list.html";
+                        } else {
+                            alert(result && result.errMsg ? result.errMsg : "用户名或密码错误");
+                        }
+                    },
+                    error: function () {
+                        alert("登录失败，请稍后重试");
                     }
-                },
-                error: function () {
-                    alert("登录失败，请稍后重试");
-                }
+                });
             })
         }
     </script>

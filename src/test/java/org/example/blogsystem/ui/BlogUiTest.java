@@ -520,7 +520,7 @@ class BlogUiTest {
         new WebDriverWait(driver, WAIT).until(ExpectedConditions.urlContains("blog_update.html"));
         waitEditorReady();
 
-        // ===== 关键断言（BUG-14 回归点）=====
+        // ===== 关键断言（编辑回显回归点）=====
         // 编辑页必须正确回显原博客内容：editor.md 异步初始化，
         // 若回显时机早于编辑器就绪，编辑框会显示默认占位文本，提交后原内容被覆盖。
         WebElement titleInput = driver.findElement(By.id("title"));
@@ -779,7 +779,7 @@ class BlogUiTest {
     }
 
     // ==================================================================
-    // 八、列表分页（BUG-06 修复后的回归用例）
+    // 八、列表分页（分页改造后的回归用例）
     // ==================================================================
 
     /**

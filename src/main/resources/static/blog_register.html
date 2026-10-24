@@ -77,27 +77,31 @@
                 return;
             }
 
-            $.ajax({
-                type: "post",
-                url: "/user/register",
-                contentType: "application/json",
-                data: JSON.stringify({
-                    userName: username,
-                    password: password,
-                    confirmPassword: confirmPassword,
-                    githubUrl: githubUrl || null
-                }),
-                success: function (result) {
-                    if (result && result.code === 200) {
-                        alert("注册成功，请登录");
-                        location.href = "blog_login.html";
-                    } else {
-                        alert(result && result.errMsg ? result.errMsg : "注册失败");
-                    }
-                },
-                error: function () {
-                    alert("注册失败，请稍后重试");
-                }
+            encryptPassword(password).then(function (encPwd) {
+                return encryptPassword(confirmPassword).then(function (encConfirm) {
+                    $.ajax({
+                        type: "post",
+                        url: "/user/register",
+                        contentType: "application/json",
+                        data: JSON.stringify({
+                            userName: username,
+                            encryptedPassword: encPwd,
+                            encryptedConfirmPassword: encConfirm,
+                            githubUrl: githubUrl || null
+                        }),
+                        success: function (result) {
+                            if (result && result.code === 200) {
+                                alert("注册成功，请登录");
+                                location.href = "blog_login.html";
+                            } else {
+                                alert(result && result.errMsg ? result.errMsg : "注册失败");
+                            }
+                        },
+                        error: function () {
+                            alert("注册失败，请稍后重试");
+                        }
+                    });
+                });
             });
         }
     </script>

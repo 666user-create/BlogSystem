@@ -6,7 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.blogsystem.common.pojo.request.UserLoginRequest;
 import org.example.blogsystem.common.pojo.request.UserRegisterRequest;
 import org.example.blogsystem.common.pojo.response.UserInfoResponse;
+import org.example.blogsystem.common.pojo.response.Result;
 import org.example.blogsystem.common.pojo.response.UserLoginResponse;
+import org.example.blogsystem.common.utils.PasswordCipher;
 import org.example.blogsystem.service.UserService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +22,14 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     @Resource(name = "userServiceImpl")
     private UserService userService;
+
+    /**
+     * 获取 RSA 公钥（前端用它加密密码后再提交）
+     */
+    @GetMapping("/rsaPublicKey")
+    public Result rsaPublicKey() {
+        return Result.success(PasswordCipher.publicKeyBase64());
+    }
 
     /**
      * 用户登录

@@ -31,3 +31,27 @@ $(function () {
         $(".nav-admin").show();
     }
 });
+
+/**
+ * 密码加密传输：取服务端 RSA 公钥，用 Web Crypto（RSA-OAEP + SHA-256）加密。
+ * 取不到公钥或浏览器不支持时回退明文（后端两者兼容），不影响功能。
+ */
+function encryptPassword(plain) {
+    if (!(window.crypto && crypto.subtle && window.TextEncoder)) {
+        return Promise.resolve(plain);
+    }
+    return fetch("/user/rsaPublicKey").then(function (r) { return r.json(); }).then(function (res) {
+        if (!res || res.code !== 200 || !res.data) { return plain; }
+        var bin = atob(res.data), der = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) { der[i] = bin.charCodeAt(i); }
+        return crypto.subtle.importKey("spki", der.buffer, {name: "RSA-OAEP", hash: "SHA-256"}, false, ["encrypt"])
+            .then(function (key) {
+                return crypto.subtle.encrypt({name: "RSA-OAEP"}, key, new TextEncoder().encode(plain));
+            })
+            .then(function (buf) {
+                var bytes = new Uint8Array(buf), s = "";
+                for (var j = 0; j < bytes.length; j++) { s += String.fromCharCode(bytes[j]); }
+                return btoa(s);
+            });
+    }).catch(function () { return plain; });
+}

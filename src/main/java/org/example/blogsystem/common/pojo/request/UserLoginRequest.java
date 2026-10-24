@@ -1,5 +1,7 @@
 package org.example.blogsystem.common.pojo.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
@@ -9,7 +11,18 @@ public class UserLoginRequest {
     @NotNull(message = "用户名不能为空")
     @Length(min = 4, max = 20, message = "用户名长度必须在4到20之间")
     private String userName;
-    @NotNull(message = "密码不能为空")
-    @Length(min=6,max=20,message = "密码长度必须在6到20之间")
+
+    /** 明文密码（脚本/接口测试使用） */
     private String password;
+
+    /** 前端 RSA 加密后的密码（浏览器使用） */
+    private String encryptedPassword;
+
+    /** 明文与密文至少传一个，否则视为参数校验失败（400） */
+    @JsonIgnore
+    @AssertTrue(message = "密码不能为空")
+    public boolean isPasswordPresent() {
+        return (password != null && !password.isEmpty())
+                || (encryptedPassword != null && !encryptedPassword.isEmpty());
+    }
 }

@@ -5,7 +5,7 @@
     1. MySQL 已启动；
     2. 被测应用已启动，默认 http://127.0.0.1:8080
        （启动命令：mvn spring-boot:run -Dspring-boot.run.profiles=dev）
-       可通过环境变量覆盖：set BASE_URL=http://127.0.0.1:8080
+       可通过环境变量覆盖：set BASE_URL=https://127.0.0.1:8080
 
 运行：
     cd tests/api-python
@@ -22,7 +22,7 @@ import pytest
 import requests
 
 # 被测服务地址（可用环境变量覆盖，便于指向测试/预发环境）
-BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:8080")
+BASE_URL = os.getenv("BASE_URL", "https://127.0.0.1:8080")
 
 # 测试账号（管理员由应用启动时自动创建）
 ADMIN_USER = "admin"

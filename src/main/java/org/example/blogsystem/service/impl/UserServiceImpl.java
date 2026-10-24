@@ -13,6 +13,7 @@ import org.example.blogsystem.common.pojo.request.UserRegisterRequest;
 import org.example.blogsystem.common.pojo.response.UserInfoResponse;
 import org.example.blogsystem.common.pojo.response.UserLoginResponse;
 import org.example.blogsystem.common.utils.JwtUtils;
+import org.example.blogsystem.common.utils.PasswordCipher;
 import org.example.blogsystem.common.utils.MyBeanUtils;
 import org.example.blogsystem.common.utils.SecurityUtil;
 import org.example.blogsystem.mapper.UserInfoMapper;
@@ -52,8 +53,14 @@ public class UserServiceImpl implements UserService {
             loginAttemptLimiter.recordFailure(userName);
             throw new BlogException(ResultCodeEnum.USER_NOT_EXIST, "用户不存在");
         }
+        // 密码可能是前端 RSA 加密后的密文，先解密（脚本/测试传明文时原样返回）
+        String password = PasswordCipher.resolvePassword(
+                userLoginRequest.getPassword(), userLoginRequest.getEncryptedPassword());
+        if (password == null || password.isEmpty()) {
+            throw new BlogException(ResultCodeEnum.PARAM_ERROR, "密码不能为空");
+        }
         // 注意：此处禁止打印密码或密码哈希（敏感信息泄露风险），仅记录用户名
-        if (!SecurityUtil.verify(userLoginRequest.getPassword(), userInfo.getPassword())) {
+        if (!SecurityUtil.verify(password, userInfo.getPassword())) {
             loginAttemptLimiter.recordFailure(userName);
             log.warn("用户 {} 密码验证失败", userLoginRequest.getUserName());
             throw new BlogException(ResultCodeEnum.PASSWORD_ERROR, "密码错误");
@@ -69,20 +76,30 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void register(UserRegisterRequest request) {
-        // 1. 校验两次密码是否一致
-        if (!request.getPassword().equals(request.getConfirmPassword())) {
+        // 1. 密码可能是前端 RSA 加密后的密文，先解密（脚本/测试传明文时原样返回）
+        String password = PasswordCipher.resolvePassword(request.getPassword(), request.getEncryptedPassword());
+        String confirmPassword = PasswordCipher.resolvePassword(
+                request.getConfirmPassword(), request.getEncryptedConfirmPassword());
+        if (password == null || password.isEmpty()) {
+            throw new BlogException(ResultCodeEnum.PARAM_ERROR, "密码不能为空");
+        }
+        if (password.length() < 6 || password.length() > 20) {
+            throw new BlogException(ResultCodeEnum.PARAM_ERROR, "密码长度必须在6到20之间");
+        }
+        // 2. 校验两次密码是否一致
+        if (!password.equals(confirmPassword)) {
             throw new BlogException(ResultCodeEnum.PARAM_ERROR, "两次输入的密码不一致");
         }
-        // 2. 检查用户名是否已被占用（包含已删除的用户）
+        // 3. 检查用户名是否已被占用（包含已删除的用户）
         QueryWrapper<UserInfo> qw = new QueryWrapper<>();
         qw.lambda().eq(UserInfo::getUserName, request.getUserName());
         if (userInfoMapper.selectCount(qw) > 0) {
             throw new BlogException(ResultCodeEnum.USERNAME_EXISTS, "用户名已被注册");
         }
-        // 3. 创建用户
+        // 4. 创建用户
         UserInfo user = new UserInfo();
         user.setUserName(request.getUserName());
-        user.setPassword(SecurityUtil.encrypt(request.getPassword()));
+        user.setPassword(SecurityUtil.encrypt(password));
         user.setDeleteFlag(0);
         user.setGithubUrl(request.getGithubUrl());
         user.setCreateTime(java.time.LocalDate.now());

@@ -59,7 +59,7 @@ class TestBlogList:
 
 @allure.feature("博客模块")
 class TestBlogPagination:
-    """博客列表分页（BUG-06 修复后的回归用例）"""
+    """博客列表分页（分页改造后的回归用例）"""
 
     @allure.story("分页")
     @allure.title("TC-LIST-09 pageSize 生效：每页最多返回 pageSize 条")
@@ -170,7 +170,7 @@ class TestBlogDetail:
         assert body["errMsg"] == "博客不存在"
 
     @allure.story("详情")
-    @allure.title("TC-DET-04 blogId=0 参数校验失败(400) —— BUG-12 回归用例")
+    @allure.title("TC-DET-04 blogId=0 参数校验失败(400)")
     def test_get_detail_zero_id_bad_request(self, base_url, auth):
         resp = requests.get(
             f"{base_url}/blog/getBlogDetail",

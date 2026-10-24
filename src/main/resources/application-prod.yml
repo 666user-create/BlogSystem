@@ -1,7 +1,8 @@
 # 生产环境: 覆盖数据库密码和日志配置
 spring:
   datasource:
-    password: CHANGE_ME
+    # 从环境变量读取，禁止把口令写进仓库
+    password: ${DB_PASSWORD:}
 
 mybatis-plus:
   configuration:

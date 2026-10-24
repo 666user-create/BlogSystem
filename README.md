@@ -104,7 +104,6 @@ tests/              # 测试资产统一入口（跨语言的都收在这里）
 
 docs/               # 测试文档（01~08 + 缺陷清单），只放"人读的文档"
 blog-cloud/         # Spring Cloud 微服务模块（独立工程，文档在 blog-cloud/docs/）
-backup/scripts/     # 辅助脚本：测试数据清理、binlog 数据恢复（backup/ 下的数据快照不入库）
 ```
 
 ## 测试
